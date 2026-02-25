@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: poro-overlay
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: ROOM_PASSWORD
+        value: riftbound2025

@@ -15,7 +15,9 @@ A real-time streaming overlay system for OBS, controllable from anywhere via a b
                     [decklist-overlay.html]
 ```
 
-The Node.js server on Railway acts as the relay. The controller sends events to it, and the overlays (running as browser sources inside OBS) receive them in real time. Railway is connected to your GitHub repo — every time you push, it redeploys automatically.
+The Node.js server on Render acts as the relay. The controller sends events to it, and the overlays (running as browser sources inside OBS) receive them in real time. Render is connected to your GitHub repo — every time you push, it redeploys automatically.
+
+> ⚠️ **Free tier note:** Render spins the server down after 15 minutes of no traffic. The first request after that takes ~30 seconds to wake up. To avoid this during a stream, just open your controller URL a minute or two before you go live — that's enough to wake it up.
 
 ---
 
@@ -60,42 +62,45 @@ public/
    git push -u origin main
    ```
 
-### Step 3 — Connect Railway to GitHub
+### Step 3 — Deploy on Render
 
-1. Create a free account at https://railway.app
-2. Click **New Project → Deploy from GitHub repo**
-3. Authorise Railway and select your repo
-4. Railway will detect the Node.js app and deploy it automatically
+1. Create a free account at https://render.com
+2. Click **New → Web Service**
+3. Click **Connect a repository** and select your GitHub repo
+4. Fill in the settings:
+   - **Name:** poro-overlay (or whatever you like)
+   - **Runtime:** Node
+   - **Build Command:** `npm install`
+   - **Start Command:** `node server.js`
+   - **Instance Type:** Free
+5. Click **Create Web Service**
+6. Render will build and deploy — takes about 2 minutes the first time
+7. Your URL will be shown at the top: `https://your-app.onrender.com`
 
-### Step 4 — Configure Railway
+### Step 4 — Set your room password
 
-In your Railway project dashboard:
-
-**Generate a public URL:**
-Settings → Networking → Generate Domain
-→ You'll get something like `https://your-app.up.railway.app`
-
-**Set your room password:**
-Variables → Add New Variable:
+In Render dashboard → your service → **Environment** tab → **Add Environment Variable**:
 ```
 ROOM_PASSWORD = your_secret_password_here
 ```
 (Default if not set: `riftbound2025`)
 
+Click **Save Changes** — Render will redeploy automatically.
+
 ### Step 5 — Set up OBS Browser Sources
 
-Add two browser sources in OBS pointing to your Railway URL:
+Add two browser sources in OBS pointing to your Render URL:
 
 | Source | URL |
 |--------|-----|
-| Score Overlay | `https://your-app.up.railway.app/score-overlay.html` |
-| Decklist Overlay | `https://your-app.up.railway.app/decklist-overlay.html` |
+| Score Overlay | `https://your-app.onrender.com/score-overlay.html` |
+| Decklist Overlay | `https://your-app.onrender.com/decklist-overlay.html` |
 
 Set both to **1920×1080**. These only need to be set up once — they'll always load the latest version automatically.
 
 ### Step 6 — Use the controller
 
-Open `https://your-app.up.railway.app/controller.html` in any browser, from anywhere in the world. Enter your room password and you're live.
+Open `https://your-app.onrender.com/controller.html` in any browser, from anywhere in the world. Enter your room password and you're live.
 
 ---
 
@@ -114,7 +119,7 @@ git commit -m "your message"
 git push
 ```
 
-Railway detects the push and redeploys in ~30 seconds. Your Railway URL never changes.
+Render detects the push and redeploys automatically. Your Render URL never changes.
 
 ---
 
