@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Riftbound Master Dashboard</title>
+    <style>
+        @font-face {
+            font-family: 'Cinzel';
+            src: url('fonts/Cinzel-VariableFont_wght.ttf') format('truetype');
+            font-weight: 100 900;
+            font-style: normal;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            background: #121212; 
+            color: white; 
+            margin: 0; 
+            padding: 0; 
+            overflow-x: hidden; 
+        }
+
+        h2, h3 { 
+            font-family: 'Cinzel', serif; 
+            text-transform: uppercase; 
+            letter-spacing: 3px; 
+            color: #f1c40f; 
+            text-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
+        }
+
+        .main-nav { 
+            background: #1e1e1e; 
+            display: flex; 
+            justify-content: center; 
+            padding: 10px; 
+            border-bottom: 3px solid #00a8ff; 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .nav-btn { 
+            font-family: 'Cinzel', serif;
+            background: #333; 
+            color: #888; 
+            border: none; 
+            padding: 10px 30px; 
+            margin: 0 5px; 
+            cursor: pointer; 
+            border-radius: 5px; 
+            font-weight: 700; 
+            transition: 0.3s; 
+            font-size: 15px;
+        }
+
+        .nav-btn.active { 
+            background: #00a8ff; 
+            color: white; 
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 15px rgba(0, 168, 255, 0.4);
+        }
+
+        .view-section { padding: 20px; display: none; }
+        .view-section.active { display: block; }
+        .hidden { display: none !important; }
+
+        .deck-manager-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #1a1a1a;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #444;
+        }
+
+        .deck-textarea {
+            width: 100%;
+            height: 400px;
+            background: #000;
+            color: #2ecc71;
+            border: 1px solid #333;
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            box-sizing: border-box;
+            border-radius: 5px;
+            resize: vertical;
+        }
+
+        .sticky-sub-header { 
+            position: sticky; 
+            top: 58px; 
+            background: #121212; 
+            padding-bottom: 20px; 
+            border-bottom: 2px solid #333; 
+            z-index: 100; 
+        }
+
+        .target-container { display: flex; gap: 10px; margin-top: 15px; }
+        .target-btn { 
+            font-family: 'Cinzel', serif;
+            flex: 1; 
+            padding: 15px; 
+            font-weight: 800; 
+            border-radius: 8px; 
+            border: none; 
+            cursor: pointer; 
+            opacity: 0.4; 
+            transition: 0.2s; 
+            color: white; 
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .target-btn.active { opacity: 1; transform: scale(1.02); }
+        #btn-p1.active { background: #00a8ff; box-shadow: 0 0 20px rgba(0, 168, 255, 0.6); text-shadow: 0 0 5px #fff; }
+        #btn-p2.active { background: #4cd137; box-shadow: 0 0 20px rgba(76, 209, 55, 0.6); text-shadow: 0 0 5px #fff; }
+        #btn-spot.active { background: #f1c40f; color: black; box-shadow: 0 0 20px rgba(241, 196, 15, 0.6); }
+
+        .tab-container { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; align-items: center; }
+        .tab-btn { 
+            font-family: 'Cinzel', serif;
+            background: #222; 
+            border: 1px solid #444; 
+            color: #888; 
+            padding: 10px 15px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            min-width: 80px; 
+            text-align: center; 
+            font-weight: 600;
+        }
+
+        .tab-btn.active { 
+            background: #444; 
+            color: #f1c40f; 
+            border-color: #f1c40f; 
+            box-shadow: inset 0 0 10px rgba(241, 196, 15, 0.2);
+        }
+
+        .search-box { 
+            width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; 
+            border: 1px solid #444; background: #222; color: white; margin-top: 15px; box-sizing: border-box; 
+        }
+
+        .gallery { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
+            gap: 15px; margin-top: 25px; 
+        }
+
+        .card-origin { 
+            display: block; font-size: 8px; color: #666; text-transform: uppercase; 
+            font-family: sans-serif; letter-spacing: 1px; margin: 0 auto; width: 100%; text-align: center;
+        }
+
+        .image-card { 
+            border: 1px solid #333; padding: 10px; border-radius: 8px; background: #1e1e1e; 
+            cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; 
+        }
+
+        .image-card:hover { background: #333; border-color: #555; transform: translateY(-3px); }
+        .image-card img { width: 100%; height: 140px; object-fit: contain; }
+        .image-card p { 
+            font-family: 'Cinzel', serif; font-size: 11px; margin-top: 8px; margin-bottom: 2px; 
+            color: #aaa; font-weight: 600; text-align: center; width: 100%;
+        }
+
+        #settings-panel {
+            background: #1a1a1a; padding: 30px; border-radius: 15px; 
+            border: 1px solid #f1c40f; margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto;
+        }
+
+        .score-container { display: flex; flex-direction: column; align-items: center; }
+        .score-card { 
+            background: #252525; padding: 20px; border-radius: 12px; margin: 10px; 
+            width: 450px; border: 1px solid #444; text-align: center; 
+        }
+        .timer-display { font-size: 64px; font-family: monospace; color: #2ecc71; text-shadow: 0 0 10px rgba(46, 204, 113, 0.3); }
+        .score-num { font-size: 42px; font-weight: bold; color: #f1c40f; margin: 0 25px; font-family: 'Cinzel', serif; }
+        
+        #status-indicator { font-size: 11px; position: fixed; bottom: 10px; right: 10px; color: #777; font-family: 'Cinzel', serif; }
+
+        .score-btn { 
+            font-family: 'Cinzel', serif;
+            padding: 10px 20px; border: none; border-radius: 5px; 
+            cursor: pointer; color: white; font-weight: bold; margin: 0 5px;
+        }
+
+        #hover-preview {
+            position: fixed; display: none; z-index: 2000; pointer-events: none;
+            background: rgba(0,0,0,0.8); padding: 5px; border: 1px solid #f1c40f; border-radius: 5px;
+        }
+        #preview-img { max-height: 400px; display: block; }
+
+        /* Login screen */
+        #login-screen {
+            position: fixed; inset: 0; background: #121212;
+            display: flex; align-items: center; justify-content: center; z-index: 9999;
+        }
+        #login-box {
+            background: #1a1a1a; border: 1px solid #f1c40f; border-radius: 15px;
+            padding: 40px; text-align: center; min-width: 350px;
+        }
+        #login-box h2 { margin-top: 0; }
+        #password-input {
+            width: 100%; padding: 12px; font-size: 16px; border-radius: 8px;
+            border: 1px solid #444; background: #222; color: white; 
+            box-sizing: border-box; margin: 20px 0; text-align: center; letter-spacing: 4px;
+        }
+        #login-error { color: #e74c3c; font-size: 13px; margin-top: 10px; min-height: 20px; }
+        #login-btn {
+            font-family: 'Cinzel', serif; background: #00a8ff; color: white; border: none;
+            padding: 12px 40px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 700; width: 100%;
+        }
+        #login-btn:hover { background: #0090d9; }
+    </style>
+</head>
+<body onload="init()">
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+    <div id="login-box">
+        <h2>Riftbound Dashboard</h2>
+        <p style="color:#888; font-size:14px;">Enter your room password to connect</p>
+        <input type="password" id="password-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') attemptLogin()">
+        <button id="login-btn" onclick="attemptLogin()">CONNECT</button>
+        <div id="login-error"></div>
+    </div>
+</div>
+
+<div id="status-indicator">Server: Disconnected</div>
+<div id="hover-preview"><img src="" id="preview-img"></div>
+
+<nav class="main-nav">
+    <button id="nav-gallery" class="nav-btn active" onclick="switchView('gallery')">IMAGE GALLERY</button>
+    <button id="nav-scores" class="nav-btn" onclick="switchView('scores')">SCOREBOARD & TIMER</button>
+    <button id="nav-deck" class="nav-btn" onclick="switchView('deck')">DECKLIST MANAGER</button>
+</nav>
+
+<section id="view-gallery" class="view-section active">
+    <div class="sticky-sub-header">
+        <div class="target-container">
+            <button id="btn-p1" class="target-btn active" onclick="setTarget('p1')">P1 TARGET</button>
+            <button id="btn-p2" class="target-btn" onclick="setTarget('p2')">P2 TARGET</button>
+            <button id="btn-spot" class="target-btn" onclick="setTarget('spotlight')">SPOTLIGHT</button>
+        </div>
+
+        <div class="tab-container">
+            <button id="tab-legends" class="tab-btn active" onclick="switchTab('legends')">LEGENDS</button>
+            <button id="tab-battlefields" class="tab-btn" onclick="switchTab('battlefields')">BATTLEFIELDS</button>
+            <button id="tab-allCards" class="tab-btn" onclick="switchTab('allCards')" style="background: #2d3436;">ALL CARDS</button>
+            <button id="tab-settings" class="tab-btn" onclick="switchTab('settings')" style="margin-left: auto; border-color: #f1c40f;">SETTINGS</button>
+        </div>
+
+        <input type="text" id="searchBar" class="search-box" placeholder="Filter gallery..." onkeyup="filterGallery()">
+    </div>
+
+    <div class="gallery" id="art-gallery"></div>
+
+    <div id="settings-panel" class="hidden">
+        <h3>Server Settings</h3>
+        <p style="color:#888; font-size: 13px;">The server URL is set when this page loads. To change it, update the SERVER_URL variable at the top of the script and re-deploy.</p>
+        <div style="margin-top: 20px; background: #111; padding: 15px; border-radius: 8px; font-family: monospace; color: #2ecc71; font-size: 13px;">
+            Connected to: <span id="server-url-display"></span>
+        </div>
+    </div>
+</section>
+
+<section id="view-scores" class="view-section">
+    <div class="score-container">
+        <div class="score-card">
+            <div class="timer-display" id="timer_val">20:00</div>
+            <button class="score-btn" onclick="startTimer()" style="background: #2ecc71;">START</button>
+            <button class="score-btn" onclick="pauseTimer()" style="background: #f39c12;">PAUSE</button>
+            <button class="score-btn" onclick="resetTimer()" style="background: #e74c3c;">RESET</button>
+            <div style="margin-top:15px;">Set Time: <input type="number" id="minutes_input" value="20" style="width: 50px;"> min</div>
+        </div>
+
+        <div class="score-card">
+            <div style="margin-bottom: 10px;">
+                Round Info: <input type="text" id="round_input" value="ROUND 1 OF 5" oninput="broadcastScores()" style="width: 60%;">
+            </div>
+            <hr style="border:0; border-top:1px solid #444; margin: 15px 0;">
+            <input type="text" id="p1_name" value="Player 1" oninput="broadcastScores()" style="font-size:18px; width:80%;">
+            <h3>
+                <button class="score-btn" onclick="updateScore('p1',-1)">-</button>
+                <span id="p1_score_val" class="score-num">0</span>
+                <button class="score-btn" onclick="updateScore('p1',1)">+</button>
+            </h3>
+        </div>
+
+        <div class="score-card">
+            <input type="text" id="p2_name" value="Player 2" oninput="broadcastScores()" style="font-size:18px; width:80%;">
+            <h3>
+                <button class="score-btn" onclick="updateScore('p2',-1)">-</button>
+                <span id="p2_score_val" class="score-num">0</span>
+                <button class="score-btn" onclick="updateScore('p2',1)">+</button>
+            </h3>
+        </div>
+    </div>
+</section>
+
+<section id="view-deck" class="view-section">
+    <div class="deck-manager-container">
+        <h3>Decklist Overlay Control</h3>
+        <button onclick="updateDecklist()" class="score-btn" style="background: #f07e01; width: 100%; margin-top: 0px; padding: 15px; font-size: 18px;">BROADCAST DECKLIST</button>
+        <p style="color: #888; font-size: 13px; margin-top: 15px;">Paste your decklist below.</p>
+        <textarea id="deckInput" class="deck-textarea" placeholder="Legend:&#10;1 Irelia, Blade Dancer&#10;&#10;Champion:&#10;1 Irelia, Fervent..."></textarea>
+        <button onclick="document.getElementById('deckInput').value=''" class="score-btn" style="background: #444; width: 100%; margin-top: 10px;">CLEAR TEXT</button>
+    </div>
+</section>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    // ============================================================
+    // CONFIGURATION — update SERVER_URL if needed
+    // When hosted on Railway, this will auto-detect the server URL
+    // ============================================================
+    const SERVER_URL = window.location.origin;
+
+    let socket = null;
+    let isConnected = false;
+    let targetSlot = 'p1';
+    let currentTabId = 'legends';
+    let scores = { p1: 0, p2: 0 };
+    let timeLeft = 1200;
+    let timerId = null;
+    let hoverTimeout;
+    let masterCardIndex = {};
+
+    const cardFolders = [
+        { id: 'origins', path: 'Cards/Origins', label: 'Origins' },
+        { id: 'spiritforged', path: 'Cards/Spiritforged', label: 'Spiritforged' },
+        { id: 'runes', path: 'Cards/Runes', label: 'Runes' }
+    ];
+
+    const galleryData = { 'legends': [], 'battlefields': [], 'allCards': [] };
+
+    function setStatus(text, color) {
+        const el = document.getElementById('status-indicator');
+        el.innerText = text;
+        el.style.color = color || '#777';
+    }
+
+    function attemptLogin() {
+        const password = document.getElementById('password-input').value;
+        const errEl = document.getElementById('login-error');
+        errEl.innerText = '';
+
+        if (!socket) {
+            errEl.innerText = 'Not connected to server yet, please wait...';
+            return;
+        }
+
+        socket.emit('auth', password, (response) => {
+            if (response.success) {
+                document.getElementById('login-screen').style.display = 'none';
+                setStatus('Server: Connected', '#2ecc71');
+            } else {
+                errEl.innerText = response.message || 'Wrong password';
+                document.getElementById('password-input').value = '';
+            }
+        });
+    }
+
+    async function init() {
+        document.getElementById('server-url-display').innerText = SERVER_URL;
+
+        // Connect socket
+        socket = io(SERVER_URL);
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            // Don't set status here — wait for auth
+        });
+
+        socket.on('disconnect', () => {
+            setStatus('Server: Disconnected', '#e74c3c');
+            isConnected = false;
+        });
+
+        // Load gallery data
+        if (!document.getElementById('obs_pass_input')) {
+            // settings panel check — skip if missing
+        }
+
+        await loadList('legends', 'Legends');
+        await loadList('battlefields', 'Battlefields');
+
+        masterCardIndex = {};
+
+        for (const folder of cardFolders) {
+            const files = await loadList(folder.id, folder.path);
+
+            files.forEach(fileName => {
+                const cleanName = fileName.replace(/\.[^/.]+$/, "").replace(/,/g, "").trim().toLowerCase();
+                masterCardIndex[cleanName] = folder.path;
+            });
+
+            const mappedFiles = files.map(file => ({ file: file, folder: folder.path, setLabel: folder.label }));
+            galleryData['allCards'] = [...galleryData['allCards'], ...mappedFiles];
+        }
+        generateGallery();
+    }
+
+    function switchView(viewId) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('view-' + viewId).classList.add('active');
+        document.getElementById('nav-' + viewId).classList.add('active');
+    }
+
+    function switchTab(id) {
+        currentTabId = id;
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('tab-' + id).classList.add('active');
+        
+        const gallery = document.getElementById('art-gallery');
+        const settings = document.getElementById('settings-panel');
+        const search = document.getElementById('searchBar');
+
+        if (id === 'settings') {
+            gallery.classList.add('hidden');
+            search.classList.add('hidden');
+            settings.classList.remove('hidden');
+        } else {
+            gallery.classList.remove('hidden');
+            search.classList.remove('hidden');
+            settings.classList.add('hidden');
+            generateGallery();
+        }
+    }
+
+    function setTarget(target) {
+        targetSlot = target;
+        document.getElementById('btn-p1').classList.toggle('active', target === 'p1');
+        document.getElementById('btn-p2').classList.toggle('active', target === 'p2');
+        document.getElementById('btn-spot').classList.toggle('active', target === 'spotlight');
+    }
+
+    async function loadList(id, folderPath) {
+        try {
+            const response = await fetch(`images/${folderPath}/cardnames.txt`);
+            const text = await response.text();
+            const list = text.split(/\r?\n/).map(l => l.trim()).filter(l => l !== "");
+            galleryData[id] = list;
+            return list;
+        } catch (e) { return []; }
+    }
+
+    function generateGallery() {
+        const container = document.getElementById('art-gallery');
+        container.innerHTML = ''; 
+        const data = galleryData[currentTabId];
+
+        const clearBtn = document.createElement('div');
+        clearBtn.className = 'image-card';
+        clearBtn.onclick = () => sendImage("CLEAR", "none.png");
+        clearBtn.innerHTML = `<div style="height:140px; display:flex; align-items:center; justify-content:center; font-size:40px; border:1px dashed #444;">×</div><p>CLEAR</p>`;
+        container.appendChild(clearBtn);
+
+        data.forEach(item => {
+            const isObject = typeof item === 'object';
+            const fileName = isObject ? item.file : item;
+            const folderPath = isObject ? item.folder : (currentTabId === 'legends' ? 'Legends' : 'Battlefields');
+            const cleanName = fileName.replace(/\.[^/.]+$/, ""); 
+            const imagePath = `images/${folderPath}/${fileName}`;
+            
+            const card = document.createElement('div');
+            card.className = 'image-card';
+            card.setAttribute('data-name', cleanName.toLowerCase());
+            card.onclick = () => sendImage(cleanName, imagePath);
+            card.onmouseenter = () => {
+                hoverTimeout = setTimeout(() => {
+                    document.getElementById('preview-img').src = imagePath;
+                    document.getElementById('hover-preview').style.display = 'block';
+                }, 400);
+            };
+            card.onmouseleave = () => { clearTimeout(hoverTimeout); document.getElementById('hover-preview').style.display = 'none'; };
+            
+            const subLabel = isObject ? `<span class="card-origin">${item.setLabel}</span>` : "";
+            card.innerHTML = `<img src="${imagePath}" onerror="this.src='images/placeholder.png'"><p>${cleanName}</p>${subLabel}`;
+            
+            container.appendChild(card);
+        });
+    }
+
+    function sendEvent(eventData) {
+        if (!socket || !socket.connected) {
+            console.warn('Not connected to server');
+            return;
+        }
+        socket.emit('overlay-event', eventData);
+    }
+
+    function sendImage(name, url) {
+        const eventData = {};
+        const displayName = (name === "CLEAR") ? "" : name;
+        
+        if (targetSlot === 'spotlight') { 
+            eventData['spotlight'] = url; 
+        } 
+        else if (currentTabId === 'battlefields') { 
+            eventData[targetSlot + 'b'] = url; 
+            eventData[targetSlot + '_bf_name'] = displayName; 
+        } 
+        else if (currentTabId === 'legends') {
+            eventData[targetSlot + 'i'] = url;
+            eventData[targetSlot + '_l_title'] = displayName;
+        }
+        else { 
+            eventData[targetSlot + 'i'] = url; 
+        }
+        
+        sendEvent(eventData);
+    }
+
+    function updateDecklist() {
+        const rawData = document.getElementById('deckInput').value;
+        if (!rawData.trim()) return;
+
+        sendEvent({
+            type: 'updateDeck',
+            list: rawData,
+            index: masterCardIndex
+        });
+        alert("Decklist broadcast sent!");
+    }
+
+    function formatTime(s) {
+        const mins = Math.floor(s / 60);
+        const secs = s % 60;
+        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    function broadcastScores() {
+        sendEvent({
+            p1n: document.getElementById('p1_name').value,
+            p1s: scores.p1,
+            p2n: document.getElementById('p2_name').value,
+            p2s: scores.p2,
+            time: formatTime(timeLeft),
+            round: document.getElementById('round_input').value
+        });
+    }
+
+    function startTimer() {
+        if (timerId) return;
+        timerId = setInterval(() => {
+            if (timeLeft > 0) { timeLeft--; document.getElementById('timer_val').innerText = formatTime(timeLeft); broadcastScores(); } 
+            else { pauseTimer(); }
+        }, 1000);
+    }
+
+    function pauseTimer() { clearInterval(timerId); timerId = null; }
+    function resetTimer() { pauseTimer(); timeLeft = document.getElementById('minutes_input').value * 60; document.getElementById('timer_val').innerText = formatTime(timeLeft); broadcastScores(); }
+    function updateScore(p, a) { scores[p] += a; document.getElementById(p + '_score_val').innerText = scores[p]; broadcastScores(); }
+
+    document.addEventListener('mousemove', (e) => {
+        const preview = document.getElementById('hover-preview');
+        if (preview.style.display === 'block') {
+            preview.style.left = (e.clientX + 20) + 'px';
+            preview.style.top = (e.clientY + 20) + 'px';
+        }
+    });
+
+    function filterGallery() {
+        const input = document.getElementById('searchBar').value.toLowerCase();
+        document.querySelectorAll('.image-card').forEach(card => {
+            const name = card.getAttribute('data-name');
+            if (name) card.classList.toggle('hidden', !name.includes(input));
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+﻿Body Rune.webp
+Calm Rune.webp
+Chaos Rune.webp
+Fury Rune.webp
+Mind Rune.webp
+Order Rune.webp

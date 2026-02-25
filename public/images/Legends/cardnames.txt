@@ -1,0 +1,28 @@
+﻿Ahri.webp
+Annie.webp
+Azir.webp
+Darius.webp
+Draven.webp
+Ezreal.webp
+Fiora.webp
+Garen.webp
+Irelia.webp
+Jax.webp
+Jinx.webp
+Kaisa.webp
+Lee Sin.webp
+Leona.webp
+Lucian.webp
+Lux.webp
+Master Yi.webp
+Miss Fortune.webp
+Ornn.webp
+Rek'Sai.webp
+Renata.webp
+Rumble.webp
+Sett.webp
+Sivir.webp
+Teemo.webp
+Viktor.webp
+Volibear.webp
+Yasuo.webp
