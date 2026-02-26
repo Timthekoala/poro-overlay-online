@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Poro Overlay Dashboard</title>
+    <title>Riftbound Master Dashboard</title>
     <style>
         @font-face {
             font-family: 'Cinzel';
@@ -311,6 +311,44 @@
             color: var(--text-muted); text-transform: uppercase; margin-bottom: .4rem;
         }
         .divider { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+
+        /* ── DECK PREVIEW ── */
+        .deck-preview-area {
+            margin-top: 1rem;
+        }
+        .deck-preview-area .preview-section-label {
+            font-family: 'Cinzel', serif; font-size: .6rem; letter-spacing: .18em;
+            color: var(--gold); text-transform: uppercase;
+            margin: 1.25rem 0 .6rem; display: flex; align-items: center; gap: .5rem;
+        }
+        .deck-preview-area .preview-section-label::before {
+            content: ''; display: inline-block; width: 3px; height: 10px;
+            border-radius: 2px; background: var(--gold);
+        }
+        .deck-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+        .deck-preview-card {
+            position: relative; cursor: pointer;
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            background: var(--surface); padding: .5rem;
+            transition: .15s; display: flex; flex-direction: column; align-items: center;
+        }
+        .deck-preview-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(200,146,42,0.2); }
+        .deck-preview-card img { width: 100%; height: 110px; object-fit: contain; border-radius: 3px; }
+        .deck-preview-card .card-name {
+            font-family: 'Cinzel', serif; font-size: .55rem; color: var(--text-dim);
+            text-align: center; margin-top: .4rem; letter-spacing: .03em;
+        }
+        .deck-preview-card .card-qty {
+            position: absolute; top: 4px; right: 4px;
+            background: var(--gold); color: #0f0f13;
+            font-family: 'Cinzel', serif; font-size: .65rem; font-weight: 900;
+            width: 20px; height: 20px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
     </style>
 </head>
 <body onload="init()">
@@ -320,8 +358,8 @@
     <div class="login-card">
         <div class="top-bar"></div>
         <div style="font-size:2rem; margin-bottom:.5rem; filter:drop-shadow(0 0 12px rgba(200,146,42,0.5))">⚔</div>
-        <div class="login-logo">Poro Overlay</div>
-        <div class="login-sub">Stream Controller · Caster Portal</div>
+        <div class="login-logo">RIFTBOUND</div>
+        <div class="login-sub">Overlay Controller · Judge Portal</div>
         <div class="faction-dots">
             <div class="faction-dot" style="background:#c0392b; box-shadow:0 0 6px #c0392b88"></div>
             <div class="faction-dot" style="background:#27ae60; box-shadow:0 0 6px #27ae6088"></div>
@@ -343,8 +381,8 @@
     <div class="header-inner">
         <div class="brand">
             <span style="font-size:1.1rem">⚔</span>
-            Poro Overlay
-            <span class="brand-sub">STREAM CONTROLLER</span>
+            RIFTBOUND
+            <span class="brand-sub">OVERLAY CONTROLLER</span>
         </div>
         <div class="faction-dots" style="margin:0">
             <div class="faction-dot" style="background:#c0392b; box-shadow:0 0 5px #c0392b88; width:8px; height:8px"></div>
@@ -452,17 +490,45 @@
 
 <!-- DECK VIEW -->
 <section id="view-deck" class="view-section">
-    <div class="card" style="max-width:800px; margin:0 auto;">
-        <div class="card-title">📜 Decklist Manager</div>
-        <button onclick="updateDecklist()" class="btn btn-gold btn-full" style="margin-bottom:1rem; font-size:.85rem; padding:.85rem;">
-            ⚔ Broadcast Decklist to Overlay
+
+    <!-- P1 / P2 subtabs -->
+    <div style="display:flex; gap:.5rem; margin-bottom:1rem;">
+        <button id="decktab-p1" class="tab-btn active" onclick="switchDeckTab('p1')" style="min-width:120px;">
+            <span style="color:var(--blue)">●</span> Player 1
         </button>
-        <p style="color:var(--text-muted); font-size:.82rem; margin-bottom:.75rem;">Paste your decklist below. Sections: Legend, Champion, MainDeck, Battlefields, Runes.</p>
-        <textarea id="deckInput" class="deck-textarea" placeholder="Legend:&#10;1 Irelia, Blade Dancer&#10;&#10;Champion:&#10;1 Irelia, Fervent..."></textarea>
-        <button onclick="document.getElementById('deckInput').value=''" class="btn btn-outline btn-full" style="margin-top:.75rem;">
-            Clear
+        <button id="decktab-p2" class="tab-btn" onclick="switchDeckTab('p2')" style="min-width:120px;">
+            <span style="color:var(--win)">●</span> Player 2
         </button>
     </div>
+
+    <!-- P1 panel -->
+    <div id="deckpanel-p1">
+        <div class="card">
+            <div class="card-title" style="color:var(--blue)">📜 Player 1 Decklist</div>
+            <button onclick="updateDecklist('p1')" class="btn btn-full" style="margin-bottom:1rem; font-size:.85rem; padding:.85rem; background:var(--blue); color:white;">
+                ⚔ Broadcast P1 Decklist to Overlay
+            </button>
+            <p style="color:var(--text-muted); font-size:.82rem; margin-bottom:.75rem;">Sections: Legend, Champion, MainDeck, Battlefields, Runes.</p>
+            <textarea id="deckInput-p1" class="deck-textarea" placeholder="Legend:&#10;1 Irelia, Blade Dancer&#10;&#10;Champion:&#10;1 Irelia, Fervent&#10;&#10;MainDeck:&#10;3 Quickstrike..."></textarea>
+            <button onclick="document.getElementById('deckInput-p1').value=''; clearDeckPreview('p1')" class="btn btn-outline btn-full" style="margin-top:.75rem;">Clear</button>
+        </div>
+        <div id="deck-preview-p1" class="deck-preview-area"></div>
+    </div>
+
+    <!-- P2 panel -->
+    <div id="deckpanel-p2" style="display:none;">
+        <div class="card">
+            <div class="card-title" style="color:var(--win)">📜 Player 2 Decklist</div>
+            <button onclick="updateDecklist('p2')" class="btn btn-full" style="margin-bottom:1rem; font-size:.85rem; padding:.85rem; background:var(--win); color:white;">
+                ⚔ Broadcast P2 Decklist to Overlay
+            </button>
+            <p style="color:var(--text-muted); font-size:.82rem; margin-bottom:.75rem;">Sections: Legend, Champion, MainDeck, Battlefields, Runes.</p>
+            <textarea id="deckInput-p2" class="deck-textarea" placeholder="Legend:&#10;1 Garen, The Might of Demacia&#10;&#10;Champion:&#10;1 Garen, Crownguard&#10;&#10;MainDeck:&#10;3 Shield of Durand..."></textarea>
+            <button onclick="document.getElementById('deckInput-p2').value=''; clearDeckPreview('p2')" class="btn btn-outline btn-full" style="margin-top:.75rem;">Clear</button>
+        </div>
+        <div id="deck-preview-p2" class="deck-preview-area"></div>
+    </div>
+
 </section>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -670,16 +736,116 @@
         sendEvent(eventData);
     }
 
-    function updateDecklist() {
-        const rawData = document.getElementById('deckInput').value;
+    let currentDeckTab = 'p1';
+
+    function switchDeckTab(player) {
+        currentDeckTab = player;
+        document.getElementById('deckpanel-p1').style.display = player === 'p1' ? 'block' : 'none';
+        document.getElementById('deckpanel-p2').style.display = player === 'p2' ? 'block' : 'none';
+        document.getElementById('decktab-p1').classList.toggle('active', player === 'p1');
+        document.getElementById('decktab-p2').classList.toggle('active', player === 'p2');
+    }
+
+    function updateDecklist(player) {
+        const rawData = document.getElementById(`deckInput-${player}`).value;
         if (!rawData.trim()) return;
 
         sendEvent({
             type: 'updateDeck',
+            player: player,
             list: rawData,
             index: masterCardIndex
         });
-        alert("Decklist broadcast sent!");
+
+        renderDeckPreview(player, rawData);
+    }
+
+    function clearDeckPreview(player) {
+        document.getElementById(`deck-preview-${player}`).innerHTML = '';
+    }
+
+    function renderDeckPreview(player, rawText) {
+        const container = document.getElementById(`deck-preview-${player}`);
+        container.innerHTML = '';
+
+        const sections = rawText.split(/\n(?=[A-Za-z ]+:)/);
+
+        sections.forEach(section => {
+            const lines = section.trim().split('\n');
+            if (!lines.length) return;
+
+            const header = lines.shift().replace(':', '').trim();
+            const cards = [];
+
+            lines.forEach(line => {
+                const match = line.match(/^(\d+)\s+(.+)$/);
+                if (!match) return;
+                cards.push({ count: match[1], name: match[2].trim() });
+            });
+
+            if (!cards.length) return;
+
+            // Section label
+            const label = document.createElement('div');
+            label.className = 'preview-section-label';
+            label.textContent = header;
+            container.appendChild(label);
+
+            // Card grid
+            const grid = document.createElement('div');
+            grid.className = 'deck-preview-grid';
+
+            cards.forEach(({ count, name }) => {
+                let imagePath;
+                if (header === 'Legend') {
+                    const cleanName = name.split(',')[0].trim();
+                    imagePath = `images/Legends/${cleanName}.webp`;
+                } else if (header === 'Battlefields') {
+                    imagePath = `images/Battlefields/${name.replace(/,/g, '').trim()}.webp`;
+                } else {
+                    const originalName = name.replace(/,/g, '').trim();
+                    const folder = masterCardIndex[originalName.toLowerCase()] || 'Cards/Origins';
+                    imagePath = `images/${folder}/${originalName}.webp`;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'deck-preview-card';
+
+                if (parseInt(count) > 1) {
+                    const qty = document.createElement('div');
+                    qty.className = 'card-qty';
+                    qty.textContent = count;
+                    card.appendChild(qty);
+                }
+
+                const img = document.createElement('img');
+                img.src = imagePath;
+                img.onerror = () => { img.src = 'images/placeholder.png'; };
+
+                const nameEl = document.createElement('div');
+                nameEl.className = 'card-name';
+                nameEl.textContent = name.replace(/,.*/, '').trim();
+
+                card.appendChild(img);
+                card.appendChild(nameEl);
+
+                // Hover magnification using existing preview
+                card.onmouseenter = () => {
+                    hoverTimeout = setTimeout(() => {
+                        document.getElementById('preview-img').src = imagePath;
+                        document.getElementById('hover-preview').style.display = 'block';
+                    }, 300);
+                };
+                card.onmouseleave = () => {
+                    clearTimeout(hoverTimeout);
+                    document.getElementById('hover-preview').style.display = 'none';
+                };
+
+                grid.appendChild(card);
+            });
+
+            container.appendChild(grid);
+        });
     }
 
     function formatTime(s) {

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>P1 Decklist Overlay</title>
+    <style>
+        @font-face {
+            font-family: 'Cinzel';
+            src: url('fonts/Cinzel-VariableFont_wght.ttf') format('truetype');
+        }
+
+        body { 
+            margin: 0; padding: 40px; width: 1920px; height: 1080px; 
+            background: transparent; font-family: 'Cinzel', serif; color: white;
+            display: flex; gap: 50px; overflow: hidden;
+        }
+
+        .sidebar { width: 320px; display: flex; flex-direction: column; gap: 25px; }
+        .sidebar-item { 
+            width: 100%; border: 2px solid #f1c40f; background: rgba(0,0,0,0.85); 
+            border-radius: 10px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            animation: slideInLeft 0.6s cubic-bezier(0.23, 1, 0.32, 1) both;
+        }
+        .sidebar-label { background: #f1c40f; color: black; text-align: center; font-size: 20px; padding: 6px; font-weight: bold; text-transform: uppercase; }
+        .sidebar-img { width: 100%; display: block; object-fit: contain; }
+
+        .deck-grid { 
+            display: grid; grid-template-columns: repeat(8, 160px); 
+            grid-auto-rows: 230px; gap: 20px; flex-grow: 1; align-content: start;
+        }
+
+        .card-container { 
+            position: relative; width: 160px; opacity: 0;
+            animation: fadeInScale 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+        }
+        
+        .card-img { width: 100%; border-radius: 8px; border: 1px solid #444; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+        .card-count { 
+            position: absolute; bottom: -8px; right: -8px;
+            background: #111; border: 2px solid #f1c40f; border-radius: 50%;
+            width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 20px; color: #f1c40f; z-index: 10;
+        }
+
+        @keyframes fadeInScale {
+            0% { opacity: 0; transform: translateY(20px) scale(0.9); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar" id="sidebar"></div>
+    <div class="deck-grid" id="deckGrid"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io(window.location.origin);
+        let cardIndex = {};
+
+        socket.on('connect', () => {
+            socket.emit('join-overlay');
+        });
+
+        socket.on('overlay-event', (data) => {
+            if (data.type === 'updateDeck' && data.player === 'p1') {
+                cardIndex = data.index || {};
+                renderDeck(data.list);
+            }
+        });
+
+        function getCardImageHtml(name, count, isSidebar = false, label = "", delay = 0) {
+            const originalName = name.replace(/,/g, "").trim();
+            const lookupName = originalName.toLowerCase();
+            const folder = cardIndex[lookupName] || 'Cards/Origins';
+            const finalPath = `images/${folder}/${originalName}.webp`;
+            const animStyle = `style="animation-delay: ${delay}s"`;
+
+            if (isSidebar) {
+                return `
+                    <div class="sidebar-item" ${animStyle}>
+                        <div class="sidebar-label">${label}</div>
+                        <img class="sidebar-img" src="${finalPath}" onerror="this.src='images/placeholder.png'">
+                    </div>`;
+            } else {
+                return `
+                    <div class="card-container" ${animStyle}>
+                        <img class="card-img" src="${finalPath}" onerror="this.src='images/placeholder.png'">
+                        <div class="card-count">${count}</div>
+                    </div>`;
+            }
+        }
+
+        function renderDeck(rawText) {
+            const grid = document.getElementById('deckGrid');
+            const sidebar = document.getElementById('sidebar');
+            grid.innerHTML = '';
+            sidebar.innerHTML = '';
+
+            const sections = rawText.split(/\n(?=[A-Za-z ]+:)/);
+            let cardCountTotal = 0;
+
+            sections.forEach(section => {
+                const lines = section.trim().split('\n');
+                if (lines.length === 0) return;
+                
+                const header = lines.shift().replace(':', '').trim();
+                
+                lines.forEach(line => {
+                    const match = line.match(/^(\d+)\s+(.+)$/);
+                    if (!match) return;
+
+                    const count = match[1];
+                    let name = match[2].trim();
+                    cardCountTotal++;
+
+                    if (header === 'Legend') {
+                        const cleanLegendName = name.split(',')[0].trim();
+                        sidebar.innerHTML += `
+                            <div class="sidebar-item" style="animation-delay: ${cardCountTotal * 0.05}s">
+                                <div class="sidebar-label">Legend</div>
+                                <img class="sidebar-img" src="images/Legends/${cleanLegendName}.webp" onerror="this.src='images/placeholder.png'">
+                            </div>`;
+                    } 
+                    else if (header === 'Champion') {
+                        sidebar.innerHTML += getCardImageHtml(name, count, true, "Champion", cardCountTotal * 0.05);
+                    } 
+                    else if (header === 'MainDeck' || header === 'Runes' || header === 'Main Deck') {
+                        grid.innerHTML += getCardImageHtml(name, count, false, "", cardCountTotal * 0.05);
+                    }
+                    else if (header === 'Battlefields') {
+                        const cleanBfName = name.replace(/,/g, "").trim();
+                        grid.innerHTML += `
+                            <div class="card-container" style="animation-delay: ${cardCountTotal * 0.05}s">
+                                <img class="card-img" src="images/Battlefields/${cleanBfName}.webp" onerror="this.src='images/placeholder.png'">
+                                <div class="card-count">${count}</div>
+                            </div>`;
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
