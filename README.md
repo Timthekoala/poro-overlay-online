@@ -94,7 +94,8 @@ Add two browser sources in OBS pointing to your Render URL:
 | Source | URL |
 |--------|-----|
 | Score Overlay | `https://your-app.onrender.com/score-overlay.html` |
-| Decklist Overlay | `https://your-app.onrender.com/decklist-overlay.html` |
+| P1 Decklist Overlay | `https://your-app.onrender.com/player1-decklist.html` |
+| P2 Decklist Overlay | `https://your-app.onrender.com/player2-decklist.html` |
 
 Set both to **1920×1080**. These only need to be set up once — they'll always load the latest version automatically.
 

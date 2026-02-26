@@ -327,26 +327,26 @@
         }
         .deck-preview-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 14px;
         }
         .deck-preview-card {
             position: relative; cursor: pointer;
             border: 1px solid var(--border); border-radius: var(--radius-sm);
-            background: var(--surface); padding: .5rem;
+            background: var(--surface); padding: .65rem;
             transition: .15s; display: flex; flex-direction: column; align-items: center;
         }
         .deck-preview-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(200,146,42,0.2); }
-        .deck-preview-card img { width: 100%; height: 110px; object-fit: contain; border-radius: 3px; }
+        .deck-preview-card img { width: 100%; height: 190px; object-fit: contain; border-radius: 4px; }
         .deck-preview-card .card-name {
-            font-family: 'Cinzel', serif; font-size: .55rem; color: var(--text-dim);
-            text-align: center; margin-top: .4rem; letter-spacing: .03em;
+            font-family: 'Cinzel', serif; font-size: .62rem; color: var(--text-dim);
+            text-align: center; margin-top: .5rem; letter-spacing: .03em;
         }
         .deck-preview-card .card-qty {
-            position: absolute; top: 4px; right: 4px;
+            position: absolute; top: 6px; right: 6px;
             background: var(--gold); color: #0f0f13;
-            font-family: 'Cinzel', serif; font-size: .65rem; font-weight: 900;
-            width: 20px; height: 20px; border-radius: 50%;
+            font-family: 'Cinzel', serif; font-size: .75rem; font-weight: 900;
+            width: 26px; height: 26px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
         }
     </style>
@@ -492,7 +492,7 @@
 <section id="view-deck" class="view-section">
 
     <!-- P1 / P2 subtabs -->
-    <div style="display:flex; gap:.5rem; margin-bottom:1rem;">
+    <div style="display:flex; gap:.5rem; margin-bottom:1rem; position:sticky; top:96px; z-index:99; background:var(--bg); padding:.5rem 0; border-bottom:1px solid var(--border);">
         <button id="decktab-p1" class="tab-btn active" onclick="switchDeckTab('p1')" style="min-width:120px;">
             <span style="color:var(--blue)">●</span> Player 1
         </button>
@@ -828,6 +828,18 @@
 
                 card.appendChild(img);
                 card.appendChild(nameEl);
+
+                // Click sends to spotlight overlay
+                card.onclick = () => {
+                    sendEvent({ spotlight: imagePath });
+                    // brief flash to confirm
+                    card.style.borderColor = 'var(--gold2)';
+                    card.style.boxShadow = '0 0 16px rgba(200,146,42,0.6)';
+                    setTimeout(() => {
+                        card.style.borderColor = '';
+                        card.style.boxShadow = '';
+                    }, 400);
+                };
 
                 // Hover magnification using existing preview
                 card.onmouseenter = () => {
