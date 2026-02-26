@@ -11,13 +11,16 @@
         body { 
             margin: 0; padding: 0; width: 1920px; height: 1080px; 
             background: transparent; font-family: 'Cinzel', serif; color: white;
-            display: flex; flex-direction: column; overflow: hidden;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            overflow: hidden;
         }
 
         /* ── NAME BANNER ── */
         .player-banner {
             display: flex; align-items: center; gap: 18px;
-            padding: 18px 40px 12px;
+            padding: 0 0 18px;
+            width: 100%;
             animation: fadeInDown 0.5s ease-out both;
         }
         .player-label {
@@ -25,9 +28,9 @@
             text-transform: uppercase; color: #58d68d; white-space: nowrap;
         }
         .player-name {
-            font-size: 58px; font-weight: 900; letter-spacing: .06em;
+            font-size: 174px; font-weight: 900; letter-spacing: .06em;
             text-transform: uppercase; color: #ffffff; line-height: 1;
-            text-shadow: 0 0 32px rgba(39,174,96,0.8), 0 2px 10px rgba(0,0,0,0.9);
+            text-shadow: 0 0 60px rgba(39,174,96,0.8), 0 4px 20px rgba(0,0,0,0.9);
         }
         .banner-line {
             flex: 1; height: 2px; border-radius: 2px;
@@ -37,17 +40,17 @@
         /* ── MAIN CONTENT ── */
         .main-content {
             display: flex; gap: 35px;
-            padding: 0 40px 40px;
+            width: 100%;
             flex: 1; overflow: hidden;
         }
 
         .sidebar { width: 200px; display: flex; flex-direction: column; gap: 15px; }
         .sidebar-item { 
-            width: 100%; border: 2px solid #f1c40f; background: rgba(0,0,0,0.85); 
+            width: 100%; border: 2px solid #f07e01; background: rgba(0,0,0,0.85); 
             border-radius: 8px; overflow: hidden; box-shadow: 0 6px 14px rgba(0,0,0,0.5);
             animation: slideInLeft 0.6s cubic-bezier(0.23, 1, 0.32, 1) both;
         }
-        .sidebar-label { background: #f1c40f; color: black; text-align: center; font-size: 13px; padding: 4px; font-weight: bold; text-transform: uppercase; }
+        .sidebar-label { background: #f07e01; color: black; text-align: center; font-size: 13px; padding: 4px; font-weight: bold; text-transform: uppercase; }
         .sidebar-img { width: 100%; display: block; object-fit: contain; }
 
         .deck-grid { 
@@ -62,9 +65,9 @@
         .card-img { width: 100%; border-radius: 8px; border: 1px solid #444; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
         .card-count { 
             position: absolute; bottom: -8px; right: -8px;
-            background: #111; border: 2px solid #f1c40f; border-radius: 50%;
+            background: #111; border: 2px solid #f07e01; border-radius: 50%;
             width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 20px; color: #f1c40f; z-index: 10;
+            font-weight: bold; font-size: 20px; color: #f07e01; z-index: 10;
         }
 
         @keyframes fadeInScale {
@@ -83,6 +86,7 @@
 </head>
 <body>
 
+    <div style="width:1840px; display:flex; flex-direction:column; height:100%;">
     <div class="player-banner">
         <div class="player-label">Player 2</div>
         <div class="player-name" id="player-name">—</div>
@@ -93,6 +97,7 @@
         <div class="sidebar" id="sidebar"></div>
         <div class="deck-grid" id="deckGrid"></div>
     </div>
+    </div><!-- end wrapper -->
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
