@@ -114,7 +114,7 @@ Master Bingwen.webp
 Minotaur Reckoner.webp
 Navori Scout.webp
 Needlessly Large Yordle.webp
-Not so Fast.webp
+Not So Fast.webp
 On the Hunt.webp
 Ornn Blacksmith.webp
 Ornn Forge God.webp
@@ -140,7 +140,7 @@ Renata Glasc Industrialist.webp
 Renata Glasc Mastermind.webp
 Rengar Pouncing.webp
 Ribbon Dancer.webp
-Ripost.webp
+Riposte.webp
 Rocket Barrage.webp
 Royal Entourage.webp
 Royal Guard.webp
