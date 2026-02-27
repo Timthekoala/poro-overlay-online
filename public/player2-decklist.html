@@ -82,9 +82,21 @@
             from { opacity: 0; transform: translateY(-12px); }
             to { opacity: 1; transform: translateY(0); }
         }
+    
+        /* ── FOG CANVAS ── */
+        #fog-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 1920px; height: 1080px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        body > *:not(#fog-canvas) { position: relative; z-index: 1; }
     </style>
 </head>
 <body>
+    <canvas id="fog-canvas"></canvas>
+
 
     <div style="width:1840px; display:flex; flex-direction:column; height:100%;">
     <div class="player-banner">
@@ -167,6 +179,49 @@
                 });
             });
         }
+    </script>
+
+    <script>
+        (function() {
+            const canvas = document.getElementById("fog-canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = 1920;
+            canvas.height = 1080;
+
+            function noise(x, y, t) {
+                return (
+                    Math.sin(x * 0.003 + t * 0.12) * 0.4 +
+                    Math.sin(y * 0.004 + t * 0.09) * 0.3 +
+                    Math.sin((x + y) * 0.0025 + t * 0.07) * 0.2 +
+                    Math.sin(x * 0.006 - y * 0.003 + t * 0.15) * 0.1
+                );
+            }
+
+            let t = 0;
+            const COLS = 24, ROWS = 14;
+            const CW = canvas.width / COLS;
+            const CH = canvas.height / ROWS;
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let row = 0; row < ROWS; row++) {
+                    for (let col = 0; col < COLS; col++) {
+                        const x = col * CW, y = row * CH;
+                        const cx = x + CW / 2, cy = y + CH / 2;
+                        const n = noise(cx, cy, t);
+                        const alpha = ((n + 1) / 2) * 0.06;
+                        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(CW, CH) * 0.9);
+                        grad.addColorStop(0, `rgba(180, 160, 120, ${alpha})`);
+                        grad.addColorStop(1, "rgba(0,0,0,0)");
+                        ctx.fillStyle = grad;
+                        ctx.fillRect(x, y, CW, CH);
+                    }
+                }
+                t += 0.008;
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
     </script>
 </body>
 </html>
