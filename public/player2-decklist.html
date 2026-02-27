@@ -197,25 +197,44 @@
             }
 
             let t = 0;
-            const COLS = 24, ROWS = 14;
-            const CW = canvas.width / COLS;
-            const CH = canvas.height / ROWS;
+            // Sparse set of large drifting fog blobs
+            const BLOBS = Array.from({ length: 12 }, (_, i) => ({
+                x: Math.random() * 1920,
+                y: Math.random() * 1080,
+                r: 200 + Math.random() * 300,
+                speedX: (Math.random() - 0.5) * 0.4,
+                speedY: (Math.random() - 0.5) * 0.25,
+                phase: Math.random() * Math.PI * 2,
+            }));
 
             function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                for (let row = 0; row < ROWS; row++) {
-                    for (let col = 0; col < COLS; col++) {
-                        const x = col * CW, y = row * CH;
-                        const cx = x + CW / 2, cy = y + CH / 2;
-                        const n = noise(cx, cy, t);
-                        const alpha = ((n + 1) / 2) * 0.18;
-                        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(CW, CH) * 0.9);
-                        grad.addColorStop(0, `rgba(100, 140, 180, ${alpha})`);
-                        grad.addColorStop(1, "rgba(0,0,0,0)");
-                        ctx.fillStyle = grad;
-                        ctx.fillRect(x, y, CW, CH);
-                    }
-                }
+
+                BLOBS.forEach(blob => {
+                    // Drift position
+                    blob.x += blob.speedX;
+                    blob.y += blob.speedY;
+
+                    // Wrap around edges
+                    if (blob.x < -blob.r) blob.x = 1920 + blob.r;
+                    if (blob.x > 1920 + blob.r) blob.x = -blob.r;
+                    if (blob.y < -blob.r) blob.y = 1080 + blob.r;
+                    if (blob.y > 1080 + blob.r) blob.y = -blob.r;
+
+                    // Pulse opacity with noise
+                    const n = noise(blob.x, blob.y, t + blob.phase);
+                    const alpha = ((n + 1) / 2) * 0.18;
+
+                    const grad = ctx.createRadialGradient(blob.x, blob.y, 0, blob.x, blob.y, blob.r);
+                    grad.addColorStop(0, `rgba(100, 140, 180, ${alpha})`);
+                    grad.addColorStop(1, "rgba(0,0,0,0)");
+
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(blob.x, blob.y, blob.r, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
                 t += 0.008;
                 requestAnimationFrame(draw);
             }
