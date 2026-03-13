@@ -70,7 +70,7 @@
 
         /* ── CONTENT ── */
         .scene {
-            position: relative; z-index: 10;
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -79,10 +79,13 @@
         }
 
         /* ── PORO ── */
+        .poro-animate {
+            animation: fadeInUp 1.2s cubic-bezier(0.23, 1, 0.32, 1) both;
+        }
+
         .poro-wrap {
             position: relative;
             display: flex; align-items: center; justify-content: center;
-            animation: fadeInUp 1.2s cubic-bezier(0.23, 1, 0.32, 1) both;
         }
 
         .poro-ring-outer {
@@ -126,9 +129,7 @@
             width: 480px; height: 480px;
             border-radius: 50%;
             object-fit: cover;
-            position: relative; z-index: 2;
             border: 2px solid rgba(240,126,1,0.4);
-            mix-blend-mode: multiply;
         }
 
         /* ── TEXT ── */
@@ -165,6 +166,7 @@
     <div class="corner corner-br"></div>
 
     <div class="scene">
+        <div class="poro-animate">
         <div class="poro-wrap">
             <div class="poro-glow"></div>
             <div class="poro-ring-outer"></div>
@@ -172,6 +174,7 @@
             <video class="poro-video" autoplay loop muted playsinline>
                 <source src="poro.mp4" type="video/mp4">
             </video>
+        </div>
         </div>
 
         <div class="title">
