@@ -9,29 +9,21 @@
             font-weight: 100 900;
         }
 
-        :root {
-            --gold:    #f07e01;
-            --gold2:   #f5a03a;
-            --navy:    #0a0e1a;
-            --navy2:   #0f1628;
-            --navy3:   #162040;
-            --blue:    #1a3a6e;
-            --text:    #e8e6e0;
-            --muted:   #6b7a9a;
-        }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             width: 1920px;
             height: 1080px;
             overflow: hidden;
-            background: var(--navy);
+            background: #050810;
             font-family: 'Cinzel', serif;
-            color: var(--text);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* ── BACKGROUND LAYERS ── */
         .bg-grid {
             position: absolute; inset: 0;
             background-image:
@@ -42,69 +34,32 @@
 
         .bg-vignette {
             position: absolute; inset: 0;
-            background: radial-gradient(ellipse 80% 80% at 50% 50%,
-                transparent 30%,
-                rgba(5, 8, 18, 0.7) 70%,
-                rgba(5, 8, 18, 0.95) 100%
+            background: radial-gradient(ellipse 85% 85% at 50% 50%,
+                transparent 20%,
+                rgba(5, 8, 16, 0.7) 65%,
+                rgba(5, 8, 16, 0.97) 100%
             );
         }
 
-        .bg-glow-left {
-            position: absolute;
-            width: 600px; height: 600px;
-            left: -100px; top: 50%;
-            transform: translateY(-50%);
-            background: radial-gradient(circle, rgba(26,58,110,0.35) 0%, transparent 70%);
-            animation: breathe 6s ease-in-out infinite;
-        }
-
-        .bg-glow-right {
-            position: absolute;
-            width: 600px; height: 600px;
-            right: -100px; top: 50%;
-            transform: translateY(-50%);
-            background: radial-gradient(circle, rgba(240,126,1,0.12) 0%, transparent 70%);
-            animation: breathe 6s ease-in-out infinite reverse;
-        }
-
-        .bg-glow-center {
-            position: absolute;
-            width: 900px; height: 900px;
-            left: 50%; top: 50%;
-            transform: translate(-50%, -50%);
-            background: radial-gradient(circle, rgba(26,58,110,0.2) 0%, transparent 65%);
-            animation: breathe 8s ease-in-out infinite;
-        }
-
-        @keyframes breathe {
-            0%, 100% { opacity: 0.6; transform: translateY(-50%) scale(1); }
-            50% { opacity: 1; transform: translateY(-50%) scale(1.1); }
-        }
-
-        /* ── DECORATIVE LINES ── */
         .deco-line-top {
             position: absolute; top: 0; left: 0; right: 0; height: 3px;
-            background: linear-gradient(90deg, transparent, var(--gold), var(--gold2), var(--gold), transparent);
+            background: linear-gradient(90deg, transparent, #f07e01, #f5a03a, #f07e01, transparent);
             animation: shimmer 3s ease-in-out infinite;
         }
         .deco-line-bottom {
             position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
-            background: linear-gradient(90deg, transparent, var(--gold), var(--gold2), var(--gold), transparent);
+            background: linear-gradient(90deg, transparent, #f07e01, #f5a03a, #f07e01, transparent);
             animation: shimmer 3s ease-in-out infinite reverse;
         }
         @keyframes shimmer {
-            0%, 100% { opacity: 0.6; }
+            0%, 100% { opacity: 0.5; }
             50% { opacity: 1; }
         }
 
-        /* Corner decorations */
-        .corner {
-            position: absolute;
-            width: 60px; height: 60px;
-        }
+        .corner { position: absolute; width: 60px; height: 60px; }
         .corner::before, .corner::after {
             content: ''; position: absolute;
-            background: var(--gold); opacity: 0.6;
+            background: #f07e01; opacity: 0.6;
         }
         .corner::before { width: 100%; height: 2px; top: 0; left: 0; }
         .corner::after  { width: 2px; height: 100%; top: 0; left: 0; }
@@ -113,82 +68,78 @@
         .corner-bl { bottom: 30px; left: 30px; transform: scaleY(-1); }
         .corner-br { bottom: 30px; right: 30px; transform: scale(-1); }
 
-        /* ── MAIN LAYOUT ── */
+        /* ── CONTENT ── */
         .scene {
             position: relative; z-index: 10;
-            width: 100%; height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0;
-        }
-
-        /* ── LEFT PANEL ── */
-        .left-panel {
             display: flex;
             flex-direction: column;
-            align-items: flex-end;
+            align-items: center;
             justify-content: center;
-            padding-right: 60px;
-            flex: 1;
-            animation: slideInLeft 1.2s cubic-bezier(0.23, 1, 0.32, 1) both;
+            gap: 50px;
         }
 
-        @keyframes slideInLeft {
-            from { opacity: 0; transform: translateX(-60px); }
-            to   { opacity: 1; transform: translateX(0); }
+        /* ── PORO ── */
+        .poro-wrap {
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+            animation: fadeInUp 1.2s cubic-bezier(0.23, 1, 0.32, 1) both;
         }
 
-        .brand-eyebrow {
-            font-size: 13px; letter-spacing: .35em; color: var(--gold);
-            text-transform: uppercase; margin-bottom: 16px;
-            display: flex; align-items: center; gap: 10px;
+        .poro-ring-outer {
+            position: absolute;
+            width: 640px; height: 640px; border-radius: 50%;
+            border: 1px solid rgba(240,126,1,0.25);
+            animation: rotateSlow 25s linear infinite;
         }
-        .brand-eyebrow::before {
-            content: ''; display: inline-block;
-            width: 30px; height: 1px; background: var(--gold);
-        }
-
-        .brand-logo {
-            font-size: 72px; font-weight: 900; letter-spacing: .06em;
-            text-transform: uppercase; line-height: 1;
-            color: var(--text);
-            text-shadow: 0 0 60px rgba(240,126,1,0.3);
-            animation: fadeGlow 3s ease-in-out infinite;
+        .poro-ring-outer::before {
+            content: ''; position: absolute;
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #f07e01; top: -5px; left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 14px #f07e01;
         }
 
-        @keyframes fadeGlow {
-            0%, 100% { text-shadow: 0 0 40px rgba(240,126,1,0.2); }
-            50%       { text-shadow: 0 0 80px rgba(240,126,1,0.5), 0 0 120px rgba(240,126,1,0.2); }
+        .poro-ring-inner {
+            position: absolute;
+            width: 580px; height: 580px; border-radius: 50%;
+            border: 1px solid rgba(93,173,226,0.2);
+            animation: rotateSlow 18s linear infinite reverse;
         }
 
-        .brand-sub {
-            font-size: 14px; letter-spacing: .3em; color: var(--muted);
-            text-transform: uppercase; margin-top: 8px; text-align: right;
+        .poro-glow {
+            position: absolute;
+            width: 520px; height: 520px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(93,173,226,0.1) 0%, transparent 70%);
+            animation: glowPulse 4s ease-in-out infinite;
         }
 
-        .divider {
-            width: 100%; height: 1px; margin: 28px 0;
-            background: linear-gradient(90deg, transparent, var(--gold), transparent);
-            opacity: 0.4;
+        @keyframes glowPulse {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+        @keyframes rotateSlow {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
         }
 
-        .starting-label {
-            font-size: 15px; letter-spacing: .3em; color: var(--gold);
-            text-transform: uppercase; margin-bottom: 10px; text-align: right;
+        .poro-video {
+            width: 480px; height: 480px;
+            border-radius: 50%;
+            object-fit: cover;
+            position: relative; z-index: 2;
+            border: 2px solid rgba(240,126,1,0.4);
+            mix-blend-mode: multiply;
         }
 
-        .starting-title {
-            font-size: 38px; font-weight: 900; letter-spacing: .08em;
-            text-transform: uppercase; color: var(--text); text-align: right;
-            line-height: 1.1;
+        /* ── TEXT ── */
+        .title {
+            font-size: 52px; font-weight: 900; letter-spacing: .25em;
+            text-transform: uppercase; color: white;
+            text-shadow: 0 0 40px rgba(240,126,1,0.3);
+            animation: fadeInUp 1.2s cubic-bezier(0.23, 1, 0.32, 1) both 0.3s;
         }
 
-        /* Animated dots */
-        .dots span {
-            animation: blink 1.4s infinite;
-            display: inline-block;
-        }
+        .dots span { animation: blink 1.4s infinite; display: inline-block; }
         .dots span:nth-child(2) { animation-delay: .2s; }
         .dots span:nth-child(3) { animation-delay: .4s; }
         @keyframes blink {
@@ -196,156 +147,16 @@
             40% { opacity: 1; }
         }
 
-        .faction-dots {
-            display: flex; gap: 8px; margin-top: 24px; justify-content: flex-end;
-        }
-        .faction-dot {
-            width: 10px; height: 10px; border-radius: 50%;
-            animation: pulseDot 2s ease-in-out infinite;
-        }
-        .faction-dot:nth-child(1) { background: #c0392b; box-shadow: 0 0 8px #c0392b88; animation-delay: 0s; }
-        .faction-dot:nth-child(2) { background: #27ae60; box-shadow: 0 0 8px #27ae6088; animation-delay: .2s; }
-        .faction-dot:nth-child(3) { background: #d35400; box-shadow: 0 0 8px #d3540088; animation-delay: .4s; }
-        .faction-dot:nth-child(4) { background: #2980b9; box-shadow: 0 0 8px #2980b988; animation-delay: .6s; }
-        .faction-dot:nth-child(5) { background: #c8922a; box-shadow: 0 0 8px #c8922a88; animation-delay: .8s; }
-        .faction-dot:nth-child(6) { background: #7d3c98; box-shadow: 0 0 8px #7d3c9888; animation-delay: 1s; }
-        @keyframes pulseDot {
-            0%, 100% { transform: scale(1); opacity: 0.7; }
-            50% { transform: scale(1.4); opacity: 1; }
-        }
-
-        /* ── CENTRE — PORO ── */
-        .poro-wrap {
-            position: relative;
-            display: flex; align-items: center; justify-content: center;
-            animation: fadeInUp 1.4s cubic-bezier(0.23, 1, 0.32, 1) both 0.3s;
-        }
-
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(40px); }
+            from { opacity: 0; transform: translateY(30px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-
-        /* Glow ring behind poro */
-        .poro-glow {
-            position: absolute;
-            width: 480px; height: 480px; border-radius: 50%;
-            background: radial-gradient(circle, rgba(240,126,1,0.15) 0%, transparent 70%);
-            animation: glowPulse 3s ease-in-out infinite;
-        }
-        @keyframes glowPulse {
-            0%, 100% { transform: scale(1); opacity: 0.6; }
-            50% { transform: scale(1.15); opacity: 1; }
-        }
-
-        .poro-ring {
-            position: absolute;
-            width: 420px; height: 420px; border-radius: 50%;
-            border: 1px solid rgba(240,126,1,0.2);
-            animation: rotateSlow 20s linear infinite;
-        }
-        .poro-ring::before {
-            content: ''; position: absolute;
-            width: 8px; height: 8px; border-radius: 50%;
-            background: var(--gold); top: -4px; left: 50%;
-            transform: translateX(-50%);
-            box-shadow: 0 0 12px var(--gold);
-        }
-        @keyframes rotateSlow {
-            from { transform: rotate(0deg); }
-            to   { transform: rotate(360deg); }
-        }
-
-        .poro-ring-2 {
-            position: absolute;
-            width: 460px; height: 460px; border-radius: 50%;
-            border: 1px solid rgba(26,58,110,0.4);
-            animation: rotateSlow 30s linear infinite reverse;
-        }
-
-        .poro-video {
-            width: 360px; height: 360px;
-            border-radius: 50%;
-            object-fit: cover;
-            position: relative; z-index: 2;
-            filter: drop-shadow(0 0 30px rgba(240,126,1,0.3));
-        }
-
-        /* ── RIGHT PANEL ── */
-        .right-panel {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            justify-content: center;
-            padding-left: 60px;
-            flex: 1;
-            animation: slideInRight 1.2s cubic-bezier(0.23, 1, 0.32, 1) both 0.2s;
-        }
-
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(60px); }
-            to   { opacity: 1; transform: translateX(0); }
-        }
-
-        .info-label {
-            font-size: 11px; letter-spacing: .3em; color: var(--muted);
-            text-transform: uppercase; margin-bottom: 8px;
-        }
-        .info-value {
-            font-size: 22px; font-weight: 700; letter-spacing: .08em;
-            color: var(--text); margin-bottom: 24px;
-        }
-        .info-value.highlight { color: var(--gold); }
-
-        .clock {
-            font-size: 56px; font-weight: 900; letter-spacing: .05em;
-            color: var(--text); line-height: 1;
-            text-shadow: 0 0 30px rgba(240,126,1,0.3);
-            margin-bottom: 6px;
-        }
-
-        .progress-bar {
-            width: 280px; height: 3px;
-            background: rgba(255,255,255,0.08); border-radius: 2px;
-            overflow: hidden; margin-bottom: 28px;
-        }
-        .progress-fill {
-            height: 100%; border-radius: 2px;
-            background: linear-gradient(90deg, var(--gold), var(--gold2));
-            animation: progressLoop 8s linear infinite;
-            transform-origin: left;
-        }
-        @keyframes progressLoop {
-            0%   { width: 0%; }
-            100% { width: 100%; }
-        }
-
-        .social-row {
-            display: flex; flex-direction: column; gap: 10px; margin-top: 8px;
-        }
-        .social-item {
-            display: flex; align-items: center; gap: 10px;
-            font-size: 14px; letter-spacing: .08em; color: var(--muted);
-        }
-        .social-icon {
-            width: 24px; height: 24px; border-radius: 4px;
-            background: rgba(240,126,1,0.15); border: 1px solid rgba(240,126,1,0.3);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px;
-        }
-
     </style>
 </head>
 <body>
 
-    <!-- Background -->
     <div class="bg-grid"></div>
-    <div class="bg-glow-left"></div>
-    <div class="bg-glow-right"></div>
-    <div class="bg-glow-center"></div>
     <div class="bg-vignette"></div>
-
-    <!-- Lines & corners -->
     <div class="deco-line-top"></div>
     <div class="deco-line-bottom"></div>
     <div class="corner corner-tl"></div>
@@ -353,78 +164,20 @@
     <div class="corner corner-bl"></div>
     <div class="corner corner-br"></div>
 
-    <!-- Main scene -->
     <div class="scene">
-
-        <!-- LEFT -->
-        <div class="left-panel">
-            <div class="brand-eyebrow">League of Legends TCG</div>
-            <div class="brand-logo">RIFTBOUND</div>
-            <div class="brand-sub">Tournament Stream</div>
-            <div class="divider"></div>
-            <div class="starting-label">Status</div>
-            <div class="starting-title">
-                Stream Starting Soon<span class="dots"><span>.</span><span>.</span><span>.</span></span>
-            </div>
-            <div class="faction-dots">
-                <div class="faction-dot"></div>
-                <div class="faction-dot"></div>
-                <div class="faction-dot"></div>
-                <div class="faction-dot"></div>
-                <div class="faction-dot"></div>
-                <div class="faction-dot"></div>
-            </div>
-        </div>
-
-        <!-- CENTRE — PORO -->
         <div class="poro-wrap">
             <div class="poro-glow"></div>
-            <div class="poro-ring-2"></div>
-            <div class="poro-ring"></div>
+            <div class="poro-ring-outer"></div>
+            <div class="poro-ring-inner"></div>
             <video class="poro-video" autoplay loop muted playsinline>
                 <source src="poro.mp4" type="video/mp4">
             </video>
         </div>
 
-        <!-- RIGHT -->
-        <div class="right-panel">
-            <div class="info-label">Current Time</div>
-            <div class="clock" id="clock">00:00:00</div>
-            <div class="progress-bar"><div class="progress-fill"></div></div>
-
-            <div class="info-label">Event</div>
-            <div class="info-value">Today's Tournament</div>
-
-            <div class="info-label">Format</div>
-            <div class="info-value highlight">Swiss Rounds</div>
-
-            <div class="info-label">Stay tuned</div>
-            <div class="social-row">
-                <div class="social-item">
-                    <div class="social-icon">▶</div>
-                    Get ready for the matches
-                </div>
-                <div class="social-item">
-                    <div class="social-icon">⚔</div>
-                    Powered by POROPAIR System
-                </div>
-            </div>
+        <div class="title">
+            Stream Starting Soon<span class="dots"><span>.</span><span>.</span><span>.</span></span>
         </div>
-
     </div>
-
-    <script>
-        // Live clock
-        function updateClock() {
-            const now = new Date();
-            const h = String(now.getHours()).padStart(2, '0');
-            const m = String(now.getMinutes()).padStart(2, '0');
-            const s = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('clock').textContent = `${h}:${m}:${s}`;
-        }
-        updateClock();
-        setInterval(updateClock, 1000);
-    </script>
 
 </body>
 </html>
