@@ -12,6 +12,18 @@ const io = new Server(server, {
 // Serve everything in /public (images, fonts, overlays, controller)
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Proxy Riftcodex API to avoid CORS issues in the browser
+app.get('/api/cards', async (req, res) => {
+    try {
+        const page = req.query.page || 1;
+        const upstream = await fetch(`https://api.riftcodex.com/cards?page=${page}`);
+        const data = await upstream.json();
+        res.json(data);
+    } catch (e) {
+        res.status(502).json({ error: 'Failed to reach Riftcodex API' });
+    }
+});
+
 // Simple auth — change this to whatever you want
 const ROOM_PASSWORD = process.env.ROOM_PASSWORD || 'riftbound2025';
 

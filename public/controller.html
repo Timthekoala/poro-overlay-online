@@ -74,6 +74,7 @@
             border-bottom: 1px solid var(--border);
             display: flex; justify-content: center;
             padding: 0; gap: 0;
+            position: sticky; top: 52px; z-index: 199;
         }
         .nav-btn {
             font-family: 'Cinzel', serif;
@@ -216,6 +217,29 @@
             font-family: 'Cinzel', serif; font-size: .6rem; letter-spacing: .05em;
             margin-top: .5rem; margin-bottom: 2px;
             color: var(--text-dim); font-weight: 600; text-align: center; width: 100%;
+        }
+
+        /* ── PAGINATION ── */
+        .pagination {
+            display: flex; align-items: center; justify-content: center;
+            gap: .4rem; padding: 1.25rem 0 .5rem; flex-wrap: wrap;
+        }
+        .page-btn {
+            font-family: 'Cinzel', serif; font-size: .68rem; font-weight: 700;
+            letter-spacing: .06em; min-width: 32px; height: 32px; padding: 0 .5rem;
+            border-radius: var(--radius-sm); border: 1px solid var(--border);
+            background: var(--surface2); color: var(--text-muted);
+            cursor: pointer; transition: .15s;
+        }
+        .page-btn:hover { border-color: var(--gold); color: var(--gold2); }
+        .page-btn.active { background: rgba(200,146,42,0.15); border-color: var(--gold); color: var(--gold2); }
+        .page-btn:disabled { opacity: .3; cursor: not-allowed; }
+        .page-info {
+            font-family: 'Cinzel', serif; font-size: .65rem; letter-spacing: .1em;
+            color: var(--text-muted); padding: 0 .5rem;
+        }
+        .tab-count {
+            font-size: .6rem; opacity: .6; margin-left: .3rem;
         }
 
         /* ── SETTINGS PANEL ── */
@@ -415,15 +439,16 @@
             <button id="btn-spot" class="target-btn" onclick="setTarget('spotlight')">✦ Spotlight</button>
         </div>
         <div class="tab-container">
-            <button id="tab-legends" class="tab-btn active" onclick="switchTab('legends')">Legends</button>
-            <button id="tab-battlefields" class="tab-btn" onclick="switchTab('battlefields')">Battlefields</button>
-            <button id="tab-allCards" class="tab-btn" onclick="switchTab('allCards')">All Cards</button>
+            <button id="tab-legends" class="tab-btn active" onclick="switchTab('legends')">Legends<span id="count-legends" class="tab-count"></span></button>
+            <button id="tab-battlefields" class="tab-btn" onclick="switchTab('battlefields')">Battlefields<span id="count-battlefields" class="tab-count"></span></button>
+            <button id="tab-allCards" class="tab-btn" onclick="switchTab('allCards')">All Cards<span id="count-allCards" class="tab-count"></span></button>
             <button id="tab-settings" class="tab-btn" onclick="switchTab('settings')" style="margin-left:auto;">⚙ Settings</button>
         </div>
         <input type="text" id="searchBar" class="search-box" placeholder="Filter gallery…" onkeyup="filterGallery()">
     </div>
 
     <div class="gallery" id="art-gallery"></div>
+    <div class="pagination" id="pagination"></div>
 
     <div id="settings-panel" class="hidden">
         <div class="card-title">⚙ Server Settings</div>
@@ -532,6 +557,7 @@
 </section>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="cardDatabase.js"></script>
 <script>
     // ============================================================
     // CONFIGURATION — update SERVER_URL if needed
@@ -547,15 +573,9 @@
     let timeLeft = 1200;
     let timerId = null;
     let hoverTimeout;
-    let masterCardIndex = {};
-
-    const cardFolders = [
-        { id: 'origins', path: 'Cards/Origins', label: 'Origins' },
-        { id: 'spiritforged', path: 'Cards/Spiritforged', label: 'Spiritforged' },
-        { id: 'runes', path: 'Cards/Runes', label: 'Runes' }
-    ];
-
     const galleryData = { 'legends': [], 'battlefields': [], 'allCards': [] };
+    const CARDS_PER_PAGE = 50;
+    let currentPage = 1;
 
     function setStatus(text, connected) {
         document.getElementById('status-text').innerText = text;
@@ -600,27 +620,19 @@
             isConnected = false;
         });
 
-        // Load gallery data
-        if (!document.getElementById('obs_pass_input')) {
-            // settings panel check — skip if missing
-        }
+        // Load card data from API
+        await RiftCodex.loadCards();
+        const byType = RiftCodex.getCardsByType();
+        galleryData['legends']     = byType.Legend      || [];
+        galleryData['battlefields']= byType.Battlefield || [];
+        galleryData['allCards']    = [...(byType.Unit || []), ...(byType.Spell || []), ...(byType.Gear || []), ...(byType.Champion || []), ...(byType.Rune || [])];
 
-        await loadList('legends', 'Legends');
-        await loadList('battlefields', 'Battlefields');
+        // Update tab counts
+        ['legends', 'battlefields', 'allCards'].forEach(tab => {
+            const el = document.getElementById('count-' + tab);
+            if (el) el.textContent = '(' + galleryData[tab].length + ')';
+        });
 
-        masterCardIndex = {};
-
-        for (const folder of cardFolders) {
-            const files = await loadList(folder.id, folder.path);
-
-            files.forEach(fileName => {
-                const cleanName = fileName.replace(/\.[^/.]+$/, "").replace(/,/g, "").trim().toLowerCase();
-                masterCardIndex[cleanName] = folder.path;
-            });
-
-            const mappedFiles = files.map(file => ({ file: file, folder: folder.path, setLabel: folder.label }));
-            galleryData['allCards'] = [...galleryData['allCards'], ...mappedFiles];
-        }
         generateGallery();
     }
 
@@ -644,10 +656,13 @@
             gallery.classList.add('hidden');
             search.classList.add('hidden');
             settings.classList.remove('hidden');
+            document.getElementById('pagination').classList.add('hidden');
         } else {
             gallery.classList.remove('hidden');
             search.classList.remove('hidden');
             settings.classList.add('hidden');
+            document.getElementById('pagination').classList.remove('hidden');
+            currentPage = 1;
             generateGallery();
         }
     }
@@ -659,51 +674,99 @@
         document.getElementById('btn-spot').classList.toggle('active', target === 'spotlight');
     }
 
-    async function loadList(id, folderPath) {
-        try {
-            const response = await fetch(`images/${folderPath}/cardnames.txt`);
-            const text = await response.text();
-            const list = text.split(/\r?\n/).map(l => l.trim()).filter(l => l !== "");
-            galleryData[id] = list;
-            return list;
-        } catch (e) { return []; }
-    }
-
     function generateGallery() {
         const container = document.getElementById('art-gallery');
-        container.innerHTML = ''; 
-        const data = galleryData[currentTabId];
+        container.innerHTML = '';
+        const allData = [...(galleryData[currentTabId] || [])].sort((a, b) => a.name.localeCompare(b.name));
+        const totalCards = allData.length;
+        const totalPages = Math.max(1, Math.ceil(totalCards / CARDS_PER_PAGE));
 
-        const clearBtn = document.createElement('div');
-        clearBtn.className = 'image-card';
-        clearBtn.onclick = () => sendImage("CLEAR", "none.png");
-        clearBtn.innerHTML = `<div style="height:140px; display:flex; align-items:center; justify-content:center; font-size:40px; border:1px dashed #444;">×</div><p>CLEAR</p>`;
-        container.appendChild(clearBtn);
+        if (currentPage > totalPages) currentPage = totalPages;
 
-        data.forEach(item => {
-            const isObject = typeof item === 'object';
-            const fileName = isObject ? item.file : item;
-            const folderPath = isObject ? item.folder : (currentTabId === 'legends' ? 'Legends' : 'Battlefields');
-            const cleanName = fileName.replace(/\.[^/.]+$/, ""); 
-            const imagePath = `images/${folderPath}/${fileName}`;
-            
-            const card = document.createElement('div');
-            card.className = 'image-card';
-            card.setAttribute('data-name', cleanName.toLowerCase());
-            card.onclick = () => sendImage(cleanName, imagePath);
-            card.onmouseenter = () => {
+        const start = (currentPage - 1) * CARDS_PER_PAGE;
+        const pageData = allData.slice(start, start + CARDS_PER_PAGE);
+
+        // CLEAR button only on page 1
+        if (currentPage === 1) {
+            const clearBtn = document.createElement('div');
+            clearBtn.className = 'image-card';
+            clearBtn.onclick = () => sendImage("CLEAR", "none.png");
+            clearBtn.innerHTML = `<div style="height:140px; display:flex; align-items:center; justify-content:center; font-size:40px; border:1px dashed #444;">×</div><p>CLEAR</p>`;
+            container.appendChild(clearBtn);
+        }
+
+        pageData.forEach(card => {
+            const imageUrl = card.media && card.media.image_url;
+            const displayName = card.name;
+            const setLabel = card.set && card.set.label ? card.set.label : '';
+
+            const el = document.createElement('div');
+            el.className = 'image-card';
+            el.setAttribute('data-name', displayName.toLowerCase());
+            el.onclick = () => sendImage(displayName, imageUrl);
+            el.onmouseenter = () => {
                 hoverTimeout = setTimeout(() => {
-                    document.getElementById('preview-img').src = imagePath;
+                    document.getElementById('preview-img').src = imageUrl;
                     document.getElementById('hover-preview').style.display = 'block';
                 }, 400);
             };
-            card.onmouseleave = () => { clearTimeout(hoverTimeout); document.getElementById('hover-preview').style.display = 'none'; };
-            
-            const subLabel = isObject ? `<span class="card-origin">${item.setLabel}</span>` : "";
-            card.innerHTML = `<img src="${imagePath}" onerror="this.src='images/placeholder.png'"><p>${cleanName}</p>${subLabel}`;
-            
-            container.appendChild(card);
+            el.onmouseleave = () => { clearTimeout(hoverTimeout); document.getElementById('hover-preview').style.display = 'none'; };
+
+            const subLabel = setLabel ? `<span class="card-origin">${setLabel}</span>` : '';
+            el.innerHTML = `<img src="${imageUrl}" onerror="this.src='images/placeholder.png'"><p>${displayName}</p>${subLabel}`;
+            container.appendChild(el);
         });
+
+        renderPagination(totalCards, totalPages);
+    }
+
+    function renderPagination(totalCards, totalPages) {
+        const container = document.getElementById('pagination');
+        container.innerHTML = '';
+        if (totalPages <= 1) return;
+
+        const info = document.createElement('span');
+        info.className = 'page-info';
+        info.textContent = `${totalCards} cards`;
+        container.appendChild(info);
+
+        // Prev
+        const prev = document.createElement('button');
+        prev.className = 'page-btn';
+        prev.textContent = '‹';
+        prev.disabled = currentPage === 1;
+        prev.onclick = () => { currentPage--; generateGallery(); window.scrollTo(0, 0); };
+        container.appendChild(prev);
+
+        // Page number buttons (show up to 7 around current page)
+        const delta = 3;
+        let pages = new Set([1, totalPages]);
+        for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) pages.add(i);
+        pages = [...pages].sort((a, b) => a - b);
+
+        let lastPage = 0;
+        pages.forEach(p => {
+            if (lastPage && p - lastPage > 1) {
+                const dots = document.createElement('span');
+                dots.className = 'page-info';
+                dots.textContent = '…';
+                container.appendChild(dots);
+            }
+            const btn = document.createElement('button');
+            btn.className = 'page-btn' + (p === currentPage ? ' active' : '');
+            btn.textContent = p;
+            btn.onclick = () => { currentPage = p; generateGallery(); window.scrollTo(0, 0); };
+            container.appendChild(btn);
+            lastPage = p;
+        });
+
+        // Next
+        const next = document.createElement('button');
+        next.className = 'page-btn';
+        next.textContent = '›';
+        next.disabled = currentPage === totalPages;
+        next.onclick = () => { currentPage++; generateGallery(); window.scrollTo(0, 0); };
+        container.appendChild(next);
     }
 
     function sendEvent(eventData) {
@@ -753,8 +816,7 @@
         sendEvent({
             type: 'updateDeck',
             player: player,
-            list: rawData,
-            index: masterCardIndex
+            list: rawData
         });
 
         renderDeckPreview(player, rawData);
@@ -796,17 +858,7 @@
             grid.className = 'deck-preview-grid';
 
             cards.forEach(({ count, name }) => {
-                let imagePath;
-                if (header === 'Legend') {
-                    const cleanName = name.split(',')[0].trim();
-                    imagePath = `images/Legends/${cleanName}.webp`;
-                } else if (header === 'Battlefields') {
-                    imagePath = `images/Battlefields/${name.replace(/,/g, '').trim()}.webp`;
-                } else {
-                    const originalName = name.replace(/,/g, '').trim();
-                    const folder = masterCardIndex[originalName.toLowerCase()] || 'Cards/Origins';
-                    imagePath = `images/${folder}/${originalName}.webp`;
-                }
+                const imagePath = RiftCodex.getCardImageUrl(name) || 'images/placeholder.png';
 
                 const card = document.createElement('div');
                 card.className = 'deck-preview-card';
@@ -899,9 +951,33 @@
 
     function filterGallery() {
         const input = document.getElementById('searchBar').value.toLowerCase();
-        document.querySelectorAll('.image-card').forEach(card => {
-            const name = card.getAttribute('data-name');
-            if (name) card.classList.toggle('hidden', !name.includes(input));
+        if (!input) {
+            currentPage = 1;
+            generateGallery();
+            return;
+        }
+        // Search across all data, bypass pagination
+        const container = document.getElementById('art-gallery');
+        container.innerHTML = '';
+        document.getElementById('pagination').innerHTML = '';
+        const allData = [...(galleryData[currentTabId] || [])].sort((a, b) => a.name.localeCompare(b.name));
+        const filtered = allData.filter(card => card.name.toLowerCase().includes(input));
+        filtered.forEach(card => {
+            const imageUrl = card.media && card.media.image_url;
+            const el = document.createElement('div');
+            el.className = 'image-card';
+            el.setAttribute('data-name', card.name.toLowerCase());
+            el.onclick = () => sendImage(card.name, imageUrl);
+            el.onmouseenter = () => {
+                hoverTimeout = setTimeout(() => {
+                    document.getElementById('preview-img').src = imageUrl;
+                    document.getElementById('hover-preview').style.display = 'block';
+                }, 400);
+            };
+            el.onmouseleave = () => { clearTimeout(hoverTimeout); document.getElementById('hover-preview').style.display = 'none'; };
+            const setLabel = card.set && card.set.label ? `<span class="card-origin">${card.set.label}</span>` : '';
+            el.innerHTML = `<img src="${imageUrl}" onerror="this.src='images/placeholder.png'"><p>${card.name}</p>${setLabel}`;
+            container.appendChild(el);
         });
     }
 </script>

@@ -58,87 +58,68 @@
     <div class="deck-grid" id="deckGrid"></div>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="cardDatabase.js"></script>
     <script>
         const socket = io(window.location.origin);
-        let cardIndex = {};
 
-        socket.on('connect', () => {
-            socket.emit('join-overlay');
-        });
+        RiftCodex.loadCards();
+
+        socket.on('connect', () => { socket.emit('join-overlay'); });
 
         socket.on('overlay-event', (data) => {
-            if (data.type === 'updateDeck') {
-                cardIndex = data.index || {};
-                renderDeck(data.list);
-            }
+            if (data.type === 'updateDeck') renderDeck(data.list);
         });
 
-        function getCardImageHtml(name, count, isSidebar = false, label = "", delay = 0) {
-            const originalName = name.replace(/,/g, "").trim();
-            const lookupName = originalName.toLowerCase();
-            const folder = cardIndex[lookupName] || 'Cards/Origins';
-            const finalPath = `images/${folder}/${originalName}.webp`;
-            const animStyle = `style="animation-delay: ${delay}s"`;
+        function getImageUrl(name) {
+            return RiftCodex.getCardImageUrl(name) || 'images/placeholder.png';
+        }
 
+        function getCardImageHtml(name, count, isSidebar = false, label = "", delay = 0) {
+            const imgUrl = getImageUrl(name);
+            const animStyle = `style="animation-delay: ${delay}s"`;
             if (isSidebar) {
-                return `
-                    <div class="sidebar-item" ${animStyle}>
-                        <div class="sidebar-label">${label}</div>
-                        <img class="sidebar-img" src="${finalPath}" onerror="this.src='images/placeholder.png'">
-                    </div>`;
+                return `<div class="sidebar-item" ${animStyle}>
+                    <div class="sidebar-label">${label}</div>
+                    <img class="sidebar-img" src="${imgUrl}" onerror="this.src='images/placeholder.png'">
+                </div>`;
             } else {
-                return `
-                    <div class="card-container" ${animStyle}>
-                        <img class="card-img" src="${finalPath}" onerror="this.src='images/placeholder.png'">
-                        <div class="card-count">${count}</div>
-                    </div>`;
+                return `<div class="card-container" ${animStyle}>
+                    <img class="card-img" src="${imgUrl}" onerror="this.src='images/placeholder.png'">
+                    <div class="card-count">${count}</div>
+                </div>`;
             }
         }
 
         function renderDeck(rawText) {
             const grid = document.getElementById('deckGrid');
             const sidebar = document.getElementById('sidebar');
-            grid.innerHTML = '';
-            sidebar.innerHTML = '';
+            grid.innerHTML = ''; sidebar.innerHTML = '';
 
             const sections = rawText.split(/\n(?=[A-Za-z ]+:)/);
-            let cardCountTotal = 0;
+            let n = 0;
 
             sections.forEach(section => {
                 const lines = section.trim().split('\n');
-                if (lines.length === 0) return;
-                
+                if (!lines.length) return;
                 const header = lines.shift().replace(':', '').trim();
-                
+
                 lines.forEach(line => {
                     const match = line.match(/^(\d+)\s+(.+)$/);
                     if (!match) return;
-
-                    const count = match[1];
-                    let name = match[2].trim();
-                    cardCountTotal++;
+                    const count = match[1], name = match[2].trim();
+                    n++;
 
                     if (header === 'Legend') {
-                        const cleanLegendName = name.split(',')[0].trim();
-                        sidebar.innerHTML += `
-                            <div class="sidebar-item" style="animation-delay: ${cardCountTotal * 0.05}s">
-                                <div class="sidebar-label">Legend</div>
-                                <img class="sidebar-img" src="images/Legends/${cleanLegendName}.webp" onerror="this.src='images/placeholder.png'">
-                            </div>`;
-                    } 
-                    else if (header === 'Champion') {
-                        sidebar.innerHTML += getCardImageHtml(name, count, true, "Champion", cardCountTotal * 0.05);
-                    } 
-                    else if (header === 'MainDeck' || header === 'Runes' || header === 'Main Deck') {
-                        grid.innerHTML += getCardImageHtml(name, count, false, "", cardCountTotal * 0.05);
-                    }
-                    else if (header === 'Battlefields') {
-                        const cleanBfName = name.replace(/,/g, "").trim();
-                        grid.innerHTML += `
-                            <div class="card-container" style="animation-delay: ${cardCountTotal * 0.05}s">
-                                <img class="card-img" src="images/Battlefields/${cleanBfName}.webp" onerror="this.src='images/placeholder.png'">
-                                <div class="card-count">${count}</div>
-                            </div>`;
+                        sidebar.innerHTML += `<div class="sidebar-item" style="animation-delay:${n*0.05}s">
+                            <div class="sidebar-label">Legend</div>
+                            <img class="sidebar-img" src="${getImageUrl(name)}" onerror="this.src='images/placeholder.png'">
+                        </div>`;
+                    } else if (header === 'Champion') {
+                        sidebar.innerHTML += getCardImageHtml(name, count, true, "Champion", n * 0.05);
+                    } else if (header === 'MainDeck' || header === 'Runes' || header === 'Main Deck') {
+                        grid.innerHTML += getCardImageHtml(name, count, false, "", n * 0.05);
+                    } else if (header === 'Battlefields') {
+                        grid.innerHTML += getCardImageHtml(name, count, false, "", n * 0.05);
                     }
                 });
             });
