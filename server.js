@@ -16,12 +16,21 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Proxy Riftcodex API to avoid CORS issues in the browser
 app.get('/api/cards', (req, res) => {
     const page = req.query.page || 1;
-    https.get(`https://api.riftcodex.com/cards?page=${page}`, (upstream) => {
+    const options = {
+        hostname: 'api.riftcodex.com',
+        path: `/cards?page=${page}`,
+        method: 'GET',
+        headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' }
+    };
+    https.get(options, (upstream) => {
         let raw = '';
         upstream.on('data', chunk => raw += chunk);
         upstream.on('end', () => {
             try { res.json(JSON.parse(raw)); }
-            catch (e) { res.status(502).json({ error: 'Parse error from Riftcodex API' }); }
+            catch (e) {
+                console.error('Riftcodex parse error, raw:', raw.slice(0, 200));
+                res.status(502).json({ error: 'Parse error from Riftcodex API' });
+            }
         });
     }).on('error', (e) => {
         console.error('Riftcodex proxy error:', e.message);
