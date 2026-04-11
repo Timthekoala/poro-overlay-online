@@ -1,6 +1,5 @@
 const express = require('express');
 const http = require('http');
-const https = require('https');
 const { Server } = require('socket.io');
 const path = require('path');
 
@@ -16,29 +15,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ── Riftcodex card cache ──────────────────────────────────────────────────────
 let cachedCards = [];
 let cacheReady = false;
-
-function fetchPage(page) {
-    return new Promise((resolve, reject) => {
-        const options = {
-            hostname: 'api.riftcodex.com',
-            path: `/cards?page=${page}`,
-            method: 'GET',
-            headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' }
-        };
-        https.get(options, (res) => {
-            // Follow redirects
-            if (res.statusCode === 301 || res.statusCode === 302) {
-                return resolve({ items: [], pages: 0 });
-            }
-            let raw = '';
-            res.on('data', chunk => raw += chunk);
-            res.on('end', () => {
-                try { resolve(JSON.parse(raw)); }
-                catch (e) { reject(new Error('Parse error: ' + raw.slice(0, 100))); }
-            });
-        }).on('error', reject);
-    });
-}
+let cacheError = null;
 
 async function warmCardCache() {
     console.log('Fetching cards from Riftcodex API...');
@@ -46,15 +23,22 @@ async function warmCardCache() {
         let page = 1, totalPages = 1;
         const all = [];
         while (page <= totalPages) {
-            const data = await fetchPage(page);
+            const res = await fetch(`https://api.riftcodex.com/cards?page=${page}`, {
+                headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+                redirect: 'follow'
+            });
+            if (!res.ok) throw new Error(`Upstream HTTP ${res.status} on page ${page}`);
+            const data = await res.json();
             if (data.items && data.items.length) all.push(...data.items);
             totalPages = data.pages || 1;
             page++;
         }
         cachedCards = all;
         cacheReady = true;
+        cacheError = null;
         console.log(`Card cache ready: ${all.length} cards loaded.`);
     } catch (e) {
+        cacheError = e.message;
         console.error('Failed to warm card cache:', e.message);
     }
 }
@@ -73,7 +57,7 @@ warmCardCache().then(() => {
 // Serve cached cards — paginated to match the API shape the browser expects
 app.get('/api/cards', (req, res) => {
     if (!cacheReady) {
-        return res.status(503).json({ error: 'Card cache not ready yet, please retry in a few seconds.' });
+        return res.status(503).json({ error: 'Card cache not ready yet, please retry in a few seconds.', detail: cacheError });
     }
     const pageSize = 200;
     const page = Math.max(1, parseInt(req.query.page) || 1);
