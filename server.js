@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const https = require('https');
 const { Server } = require('socket.io');
 const path = require('path');
 
@@ -13,15 +14,19 @@ const io = new Server(server, {
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Proxy Riftcodex API to avoid CORS issues in the browser
-app.get('/api/cards', async (req, res) => {
-    try {
-        const page = req.query.page || 1;
-        const upstream = await fetch(`https://api.riftcodex.com/cards?page=${page}`);
-        const data = await upstream.json();
-        res.json(data);
-    } catch (e) {
+app.get('/api/cards', (req, res) => {
+    const page = req.query.page || 1;
+    https.get(`https://api.riftcodex.com/cards?page=${page}`, (upstream) => {
+        let raw = '';
+        upstream.on('data', chunk => raw += chunk);
+        upstream.on('end', () => {
+            try { res.json(JSON.parse(raw)); }
+            catch (e) { res.status(502).json({ error: 'Parse error from Riftcodex API' }); }
+        });
+    }).on('error', (e) => {
+        console.error('Riftcodex proxy error:', e.message);
         res.status(502).json({ error: 'Failed to reach Riftcodex API' });
-    }
+    });
 });
 
 // Simple auth — change this to whatever you want

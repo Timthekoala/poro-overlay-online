@@ -442,6 +442,7 @@
             <button id="tab-legends" class="tab-btn active" onclick="switchTab('legends')">Legends<span id="count-legends" class="tab-count"></span></button>
             <button id="tab-battlefields" class="tab-btn" onclick="switchTab('battlefields')">Battlefields<span id="count-battlefields" class="tab-count"></span></button>
             <button id="tab-allCards" class="tab-btn" onclick="switchTab('allCards')">All Cards<span id="count-allCards" class="tab-count"></span></button>
+            <span id="latest-set-label" style="font-size:.7rem; color:var(--text-muted); align-self:center; padding-left:.5rem; letter-spacing:.08em; white-space:nowrap;"></span>
             <button id="tab-settings" class="tab-btn" onclick="switchTab('settings')" style="margin-left:auto;">⚙ Settings</button>
         </div>
         <input type="text" id="searchBar" class="search-box" placeholder="Filter gallery…" onkeyup="filterGallery()">
@@ -632,6 +633,11 @@
             const el = document.getElementById('count-' + tab);
             if (el) el.textContent = '(' + galleryData[tab].length + ')';
         });
+
+        // Show latest set label beside All Cards tab
+        const latestSet = RiftCodex.getLatestSet();
+        const latestSetEl = document.getElementById('latest-set-label');
+        if (latestSetEl && latestSet) latestSetEl.textContent = 'Latest Set: ' + latestSet;
 
         generateGallery();
     }
