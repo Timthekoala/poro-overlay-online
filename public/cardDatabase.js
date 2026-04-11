@@ -56,7 +56,14 @@
                 const cards = [];
                 let page = 1, totalPages = 1;
                 while (page <= totalPages) {
-                    const res = await fetch(`${RIFTCODEX_API}/cards?page=${page}`);
+                    let res, attempts = 0;
+                    while (attempts < 10) {
+                        res = await fetch(`${RIFTCODEX_API}/cards?page=${page}`);
+                        if (res.status !== 503) break;
+                        // Server cache still warming — wait and retry
+                        attempts++;
+                        await new Promise(r => setTimeout(r, 3000));
+                    }
                     if (!res.ok) break;
                     const data = await res.json();
                     if (data.items && data.items.length) cards.push(...data.items);

@@ -59,7 +59,16 @@ async function warmCardCache() {
     }
 }
 
-warmCardCache();
+warmCardCache().then(() => {
+    server.listen(PORT, () => {
+        console.log(`Riftbound Overlay Server running on port ${PORT}`);
+    });
+}).catch(() => {
+    // Start anyway even if warm failed — browser will get 503 and retry
+    server.listen(PORT, () => {
+        console.log(`Riftbound Overlay Server running on port ${PORT} (cache failed)`);
+    });
+});
 
 // Serve cached cards — paginated to match the API shape the browser expects
 app.get('/api/cards', (req, res) => {
@@ -107,6 +116,3 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Riftbound Overlay Server running on port ${PORT}`);
-});
