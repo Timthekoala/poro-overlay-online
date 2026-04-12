@@ -86,12 +86,6 @@
 
         .center-logo { font-size: 40px; font-weight: 900; color: #fff; padding: 0 20px; height: 80px; display: flex; align-items: center; text-shadow: 0 0 15px rgba(255,255,255,0.5); }
 
-        .info-panel-left { position: absolute; bottom: 150px; left: 65px; text-align: center; }
-        .round-text {
-            display: block; font-size: 18px; font-weight: 700; color: #f07e01;
-            background: rgba(0,0,0,0.8); padding: 5px 15px; border-radius: 4px; border: 1px solid #f07e01;
-        }
-
         .card-spotlight { position: absolute; bottom: 40px; right: 30px; width: 320px; height: 450px; background: rgba(0,0,0,0.6); border: 2px solid #f07e01; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
         .spotlight-img { max-width: 90%; max-height: 90%; object-fit: contain; }
 
@@ -137,10 +131,6 @@
         </div>
     </div>
 
-    <div class="info-panel-left">
-        <span id="round_info" class="round-text">ROUND 1 OF 5</span>
-    </div>
-
     <div class="card-spotlight">
         <img id="card_art" class="spotlight-img" src="none.png">
     </div>
@@ -158,8 +148,6 @@
             if (data.p1s !== undefined) document.getElementById('p1s').innerText = data.p1s;
             if (data.p2n !== undefined) document.getElementById('p2n').innerText = data.p2n;
             if (data.p2s !== undefined) document.getElementById('p2s').innerText = data.p2s;
-            if (data.round !== undefined) document.getElementById('round_info').innerText = data.round;
-
             if (data.p1i !== undefined) document.getElementById('p1_legend').src = data.p1i;
             if (data.p1_l_title !== undefined) document.getElementById('p1_l_title').innerText = data.p1_l_title;
 
