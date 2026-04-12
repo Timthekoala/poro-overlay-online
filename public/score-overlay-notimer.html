@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @font-face {
+            font-family: 'Cinzel';
+            src: url('fonts/Cinzel-VariableFont_wght.ttf') format('truetype');
+            font-weight: 100 900;
+            font-style: normal;
+        }
+
+        body {
+            margin: 0; padding: 0; width: 1920px; height: 1080px;
+            overflow: hidden; font-family: 'Cinzel', serif; color: white; background: transparent;
+        }
+
+        .top-bar-wrapper {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; align-items: flex-start; gap: 25px;
+        }
+
+        .side-column { display: flex; flex-direction: column; align-items: center; position: relative; }
+
+        .title-box {
+            background: rgba(0, 0, 0, 0.85); border: 2px solid #f07e01; color: #ffffff;
+            width: 310px; padding: 5px 10px; text-align: center; font-size: 18px; font-weight: 700;
+            text-transform: uppercase; margin: 10px 0;
+            clip-path: polygon(10px 0%, 100% 0%, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0% 100%, 0% 10px);
+            text-shadow: 0 0 5px rgba(241, 196, 15, 0.5); min-height: 24px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .battlefield-title {
+            position: absolute; bottom: 40px; width: 330px; text-align: center;
+            font-size: 16px; font-weight: 700; color: #ffffff; text-transform: uppercase;
+            text-shadow: 2px 2px 4px rgba(0,0,0,1); z-index: 100;
+        }
+
+        .box {
+            background: rgba(0, 0, 0, 0.9); border: 2px solid #f07e01;
+            border-radius: 4px; display: flex; align-items: center; overflow: hidden;
+        }
+
+        .legend-box {
+            width: 330px; height: 290px; justify-content: center;
+            background: rgba(0, 0, 0, 0.9); position: relative; z-index: 1;
+            clip-path: polygon(15px 0%, 100% 0%, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0% 100%, 0% 15px);
+        }
+
+        .legend-portrait { width: 100%; height: 100%; object-fit: cover; object-position: top; clip-path: inherit; }
+
+        .legend-box::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            box-shadow: inset 0 0 0 2px #444; clip-path: inherit; z-index: 5;
+        }
+
+        .battlefield-box {
+            width: 330px; height: 100px; justify-content: center;
+            background: rgba(20, 20, 20, 0.95); margin-top: 5px; position: relative; z-index: 1;
+            clip-path: polygon(15px 0%, 100% 0%, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0% 100%, 0% 15px);
+            box-shadow: inset 0 0 0 2px #444;
+        }
+
+        .battlefield-box::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(40, 40, 40, 0.6); z-index: 2; clip-path: inherit;
+        }
+
+        .battlefield-img {
+            max-width: 400px; max-height: 400px; object-fit: cover;
+            filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+        }
+
+        .anim-fade-in { animation: fadeSlide 0.5s ease-out forwards; }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .p-section { min-width: 500px; height: 80px; border-color: #f07e01; }
+        .name-area { flex-grow: 1; padding: 0 20px; font-size: 36px; text-transform: uppercase; font-weight: 800; }
+        .score {
+            font-size: 50px; width: 80px; text-align: center; font-weight: 900;
+            background: #f07e01; color: white; height: 100%; display: flex; align-items: center; justify-content: center;
+        }
+
+        .center-logo { font-size: 40px; font-weight: 900; color: #fff; padding: 0 20px; height: 80px; display: flex; align-items: center; text-shadow: 0 0 15px rgba(255,255,255,0.5); }
+
+        .info-panel-left { position: absolute; bottom: 150px; left: 65px; text-align: center; }
+        .round-text {
+            display: block; font-size: 18px; font-weight: 700; color: #f07e01;
+            background: rgba(0,0,0,0.8); padding: 5px 15px; border-radius: 4px; border: 1px solid #f07e01;
+        }
+
+        .card-spotlight { position: absolute; bottom: 40px; right: 30px; width: 320px; height: 450px; background: rgba(0,0,0,0.6); border: 2px solid #f07e01; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .spotlight-img { max-width: 90%; max-height: 90%; object-fit: contain; }
+
+        .anim-pop { animation: pop 0.3s ease-out; }
+        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar-wrapper">
+        <div class="side-column">
+            <div class="box legend-box">
+                <img id="p1_legend" class="legend-portrait" src="none.png">
+            </div>
+            <div id="p1_l_title" class="title-box"></div>
+            <div class="box battlefield-box">
+                <div id="p1_bf_title" class="battlefield-title"></div>
+                <img id="p1_battlefield" class="battlefield-img" src="none.png">
+            </div>
+        </div>
+
+        <div class="box p-section">
+            <div id="p1n" class="name-area" style="text-align: center;">PLAYER 1</div>
+            <div id="p1s" class="score">0</div>
+        </div>
+
+        <div class="center-logo">VS</div>
+
+        <div class="box p-section" style="flex-direction: row-reverse; border-color: #f07e01;">
+            <div id="p2n" class="name-area" style="text-align: center;">PLAYER 2</div>
+            <div id="p2s" class="score" style="background: #f07e01;">0</div>
+        </div>
+
+        <div class="side-column">
+            <div class="box legend-box">
+                <img id="p2_legend" class="legend-portrait" src="none.png">
+            </div>
+            <div id="p2_l_title" class="title-box"></div>
+            <div class="box battlefield-box">
+                <div id="p2_bf_title" class="battlefield-title"></div>
+                <img id="p2_battlefield" class="battlefield-img" src="none.png">
+            </div>
+        </div>
+    </div>
+
+    <div class="info-panel-left">
+        <span id="round_info" class="round-text">ROUND 1 OF 5</span>
+    </div>
+
+    <div class="card-spotlight">
+        <img id="card_art" class="spotlight-img" src="none.png">
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io(window.location.origin);
+
+        socket.on('connect', () => {
+            socket.emit('join-overlay');
+        });
+
+        socket.on('overlay-event', (data) => {
+            if (data.p1n !== undefined) document.getElementById('p1n').innerText = data.p1n;
+            if (data.p1s !== undefined) document.getElementById('p1s').innerText = data.p1s;
+            if (data.p2n !== undefined) document.getElementById('p2n').innerText = data.p2n;
+            if (data.p2s !== undefined) document.getElementById('p2s').innerText = data.p2s;
+            if (data.round !== undefined) document.getElementById('round_info').innerText = data.round;
+
+            if (data.p1i !== undefined) document.getElementById('p1_legend').src = data.p1i;
+            if (data.p1_l_title !== undefined) document.getElementById('p1_l_title').innerText = data.p1_l_title;
+
+            if (data.p2i !== undefined) document.getElementById('p2_legend').src = data.p2i;
+            if (data.p2_l_title !== undefined) document.getElementById('p2_l_title').innerText = data.p2_l_title;
+
+            if (data.p1b !== undefined) {
+                const img = document.getElementById('p1_battlefield');
+                img.src = data.p1b;
+                document.getElementById('p1_bf_title').innerText = data.p1_bf_name || "";
+                img.classList.remove('anim-fade-in'); void img.offsetWidth; img.classList.add('anim-fade-in');
+            }
+            if (data.p2b !== undefined) {
+                const img = document.getElementById('p2_battlefield');
+                img.src = data.p2b;
+                document.getElementById('p2_bf_title').innerText = data.p2_bf_name || "";
+                img.classList.remove('anim-fade-in'); void img.offsetWidth; img.classList.add('anim-fade-in');
+            }
+
+            if (data.spotlight !== undefined) {
+                const img = document.getElementById('card_art');
+                img.src = data.spotlight;
+                img.classList.remove('anim-pop'); void img.offsetWidth; img.classList.add('anim-pop');
+            }
+        });
+    </script>
+</body>
+</html>
