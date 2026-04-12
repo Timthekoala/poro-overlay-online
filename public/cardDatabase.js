@@ -1,6 +1,6 @@
 (function () {
     const PROXY_API   = window.location.origin + '/api';
-    const DIRECT_API  = 'https://corsproxy.io/?url=https://api.riftcodex.com';
+    const DIRECT_API  = 'https://corsproxy.io/?https://api.riftcodex.com';
     const CACHE_KEY = 'rb_riftcodex_v3';
     const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -61,16 +61,19 @@
                         let attempts = 0;
                         while (attempts < 5) {
                             const r = await fetch(`${PROXY_API}/cards?page=${page}`);
-                            if (r.status !== 503) {
-                                if (r.ok) return r.json();
-                                // Proxy failed (403 etc.) — switch to direct
-                                useDirectApi = true;
-                                break;
+                            if (r.status === 503) {
+                                // Cache still warming — wait and retry
+                                attempts++;
+                                await new Promise(resolve => setTimeout(resolve, 3000));
+                                continue;
                             }
-                            attempts++;
-                            await new Promise(r => setTimeout(r, 3000));
+                            if (r.ok) return r.json();
+                            // Any other failure (403 etc.) — fall through to direct
+                            break;
                         }
-                        if (!useDirectApi) throw new Error('Proxy unavailable');
+                        // Proxy failed or exhausted retries — switch to corsproxy.io
+                        useDirectApi = true;
+                        console.warn('Server proxy unavailable, switching to direct API');
                     }
                     const r = await fetch(`${DIRECT_API}/cards?page=${page}`);
                     if (!r.ok) throw new Error(`Direct API ${r.status}`);
