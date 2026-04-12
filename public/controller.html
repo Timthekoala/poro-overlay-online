@@ -568,6 +568,7 @@
 
     let socket = null;
     let isConnected = false;
+    let lastPassword = null;
     let targetSlot = 'p1';
     let currentTabId = 'legends';
     let scores = { p1: 0, p2: 0 };
@@ -596,6 +597,7 @@
 
         socket.emit('auth', password, (response) => {
             if (response.success) {
+                lastPassword = password;
                 document.getElementById('login-screen').style.display = 'none';
                 setStatus('Connected', true);
             } else {
@@ -613,7 +615,12 @@
 
         socket.on('connect', () => {
             console.log('Connected to server');
-            // Don't set status here — wait for auth
+            // Re-auth automatically if we were previously authenticated
+            if (lastPassword) {
+                socket.emit('auth', lastPassword, (response) => {
+                    if (response && response.success) setStatus('Connected', true);
+                });
+            }
         });
 
         socket.on('disconnect', () => {
