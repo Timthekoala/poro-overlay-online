@@ -24,7 +24,16 @@ async function warmCardCache() {
         const all = [];
         while (page <= totalPages) {
             const res = await fetch(`https://api.riftcodex.com/cards?page=${page}`, {
-                headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                    'Accept': 'application/json, text/plain, */*',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Origin': 'https://riftcodex.com',
+                    'Referer': 'https://riftcodex.com/',
+                    'Sec-Fetch-Dest': 'empty',
+                    'Sec-Fetch-Mode': 'cors',
+                    'Sec-Fetch-Site': 'same-site',
+                },
                 redirect: 'follow'
             });
             if (!res.ok) throw new Error(`Upstream HTTP ${res.status} on page ${page}`);

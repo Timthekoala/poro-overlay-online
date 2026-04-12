@@ -1,5 +1,6 @@
 (function () {
-    const RIFTCODEX_API = window.location.origin + '/api';
+    const PROXY_API   = window.location.origin + '/api';
+    const DIRECT_API  = 'https://corsproxy.io/?url=https://api.riftcodex.com';
     const CACHE_KEY = 'rb_riftcodex_v3';
     const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -53,19 +54,33 @@
                     return _map;
                 }
 
+                // Try server proxy first; fall back to corsproxy.io if unavailable
+                let useDirectApi = false;
+                async function fetchPage(page) {
+                    if (!useDirectApi) {
+                        let attempts = 0;
+                        while (attempts < 5) {
+                            const r = await fetch(`${PROXY_API}/cards?page=${page}`);
+                            if (r.status !== 503) {
+                                if (r.ok) return r.json();
+                                // Proxy failed (403 etc.) — switch to direct
+                                useDirectApi = true;
+                                break;
+                            }
+                            attempts++;
+                            await new Promise(r => setTimeout(r, 3000));
+                        }
+                        if (!useDirectApi) throw new Error('Proxy unavailable');
+                    }
+                    const r = await fetch(`${DIRECT_API}/cards?page=${page}`);
+                    if (!r.ok) throw new Error(`Direct API ${r.status}`);
+                    return r.json();
+                }
+
                 const cards = [];
                 let page = 1, totalPages = 1;
                 while (page <= totalPages) {
-                    let res, attempts = 0;
-                    while (attempts < 10) {
-                        res = await fetch(`${RIFTCODEX_API}/cards?page=${page}`);
-                        if (res.status !== 503) break;
-                        // Server cache still warming — wait and retry
-                        attempts++;
-                        await new Promise(r => setTimeout(r, 3000));
-                    }
-                    if (!res.ok) break;
-                    const data = await res.json();
+                    const data = await fetchPage(page);
                     if (data.items && data.items.length) cards.push(...data.items);
                     totalPages = data.pages || 1;
                     page++;
