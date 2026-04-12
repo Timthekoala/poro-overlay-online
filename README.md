@@ -1,6 +1,6 @@
 # Riftbound Overlay System
 
-A real-time streaming overlay system for OBS, controllable from anywhere via a browser.
+A real-time streaming overlay system for OBS, controllable from any browser anywhere in the world.
 
 ---
 
@@ -8,51 +8,53 @@ A real-time streaming overlay system for OBS, controllable from anywhere via a b
 
 ```
 [You, anywhere in the world]
-        ↓ (browser)
-[controller.html] ──→ [Railway Server] ←── [OBS Browser Sources]
-                             ↓
-                    [score-overlay.html]
-                    [decklist-overlay.html]
+        ↓  (browser)
+[controller.html]  ──→  [Render Server]  ←──  [OBS Browser Sources]
+                               ↓
+                      score-overlay.html
+                      player1-decklist.html
+                      player2-decklist.html
+                      starting-soon.html
 ```
 
-The Node.js server on Render acts as the relay. The controller sends events to it, and the overlays (running as browser sources inside OBS) receive them in real time. Render is connected to your GitHub repo — every time you push, it redeploys automatically.
+The Node.js server on Render is the relay. The controller sends events to it, and the overlays running inside OBS receive them in real time. Card data is bundled as a static JSON file — no external API calls at runtime.
 
-> ⚠️ **Free tier note:** Render spins the server down after 15 minutes of no traffic. The first request after that takes ~30 seconds to wake up. To avoid this during a stream, just open your controller URL a minute or two before you go live — that's enough to wake it up.
+> **Free tier note:** Render spins the server down after 15 minutes of no traffic. The first request after that takes ~30 seconds to wake up. Open your controller URL a minute or two before going live to wake it up.
 
 ---
 
 ## One-Time Setup
 
-### Step 1 — Add your image and font files
+### Step 1 — Clone or download the repo
 
-Copy your assets into `public/` so the structure looks like this:
-
-```
-public/
-  images/
-    Legends/
-      cardnames.txt
-      IreliaBlades.webp
-      ...
-    Battlefields/
-      cardnames.txt
-      ...
-    Cards/
-      Origins/
-        cardnames.txt
-        ...
-      Spiritforged/
-        ...
-      Runes/
-        ...
-  fonts/
-    Cinzel-VariableFont_wght.ttf
+```bash
+git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
+cd YOUR_REPO
+npm install
 ```
 
-### Step 2 — Create a GitHub repo
+### Step 2 — Fetch the card data
 
-1. Go to https://github.com/new and create a new repository (can be private)
-2. In this folder, run:
+Card images and data come from the Riftcodex API. Run this script once locally to download all card data into a static file:
+
+```bash
+node fetch-cards.js
+```
+
+This creates `public/cards.json` (~2–5 MB). Commit it:
+
+```bash
+git add public/cards.json
+git commit -m "Add card data"
+git push
+```
+
+> **When a new set is released:** run `node fetch-cards.js` again, then commit and push the updated `public/cards.json`.
+
+### Step 3 — Create a GitHub repo (if starting from scratch)
+
+1. Go to https://github.com/new and create a new repository
+2. Push the project up:
    ```bash
    git init
    git add .
@@ -62,65 +64,114 @@ public/
    git push -u origin main
    ```
 
-### Step 3 — Deploy on Render
+### Step 4 — Deploy on Render
 
 1. Create a free account at https://render.com
 2. Click **New → Web Service**
-3. Click **Connect a repository** and select your GitHub repo
+3. Connect your GitHub repository
 4. Fill in the settings:
-   - **Name:** poro-overlay (or whatever you like)
    - **Runtime:** Node
    - **Build Command:** `npm install`
    - **Start Command:** `node server.js`
    - **Instance Type:** Free
 5. Click **Create Web Service**
-6. Render will build and deploy — takes about 2 minutes the first time
-7. Your URL will be shown at the top: `https://your-app.onrender.com`
+6. Render builds and deploys — takes ~2 minutes the first time
+7. Your URL appears at the top: `https://your-app.onrender.com`
 
-### Step 4 — Set your room password
+### Step 5 — Set your room password
 
-In Render dashboard → your service → **Environment** tab → **Add Environment Variable**:
+In the Render dashboard → your service → **Environment** tab → **Add Environment Variable**:
+
 ```
 ROOM_PASSWORD = your_secret_password_here
 ```
-(Default if not set: `riftbound2025`)
 
-Click **Save Changes** — Render will redeploy automatically.
+Default if not set: `riftbound2025`
 
-### Step 5 — Set up OBS Browser Sources
+Click **Save Changes** — Render redeploys automatically.
 
-Add two browser sources in OBS pointing to your Render URL:
+### Step 6 — Add OBS Browser Sources
 
-| Source | URL |
-|--------|-----|
-| Score Overlay | `https://your-app.onrender.com/score-overlay.html` |
-| P1 Decklist Overlay | `https://your-app.onrender.com/player1-decklist.html` |
-| P2 Decklist Overlay | `https://your-app.onrender.com/player2-decklist.html` |
+In OBS, add a **Browser Source** for each overlay. Set all to **1920×1080** with a transparent/black background.
 
-Set both to **1920×1080**. These only need to be set up once — they'll always load the latest version automatically.
+| Scene | Source Name | URL |
+|-------|-------------|-----|
+| Starting Soon | Starting Soon | `https://your-app.onrender.com/starting-soon.html` |
+| Match | Score Overlay | `https://your-app.onrender.com/score-overlay.html` |
+| Match | P1 Decklist | `https://your-app.onrender.com/player1-decklist.html` |
+| Match | P2 Decklist | `https://your-app.onrender.com/player2-decklist.html` |
 
-### Step 6 — Use the controller
+**OBS Browser Source settings to check:**
+- Width: `1920`, Height: `1080`
+- ✅ Shutdown source when not visible
+- ✅ Refresh browser when scene becomes active
 
-Open `https://your-app.onrender.com/controller.html` in any browser, from anywhere in the world. Enter your room password and you're live.
+These only need to be set up once — they always load the latest version on Render automatically.
 
 ---
 
-## Ongoing Updates
+## Using the Controller
 
-Any time you add new card art, update overlays, or change anything:
+Open `https://your-app.onrender.com/controller.html` in any browser. Enter your room password to authenticate.
 
-```bash
-./deploy.sh "added new card set"
+### Image Gallery tab
+
+Browse all Riftbound cards organized by type: **Legends**, **Battlefields**, **All Cards**.
+
+- Click any card to send it to the **Spotlight** panel (bottom-right of the score overlay)
+- Use the **P1 TARGET / P2 TARGET** buttons to select which player a legend or battlefield applies to
+- Use the search bar to filter by card name
+- Cards are paginated 50 per page
+
+### Scoreboard tab
+
+| Control | What it does |
+|---------|-------------|
+| Player name fields | Updates player names live on the score overlay |
+| `+` / `-` buttons | Increments or decrements game wins |
+| Round field | Updates the round label (e.g. "Round 1 of 5") |
+| Timer | Set and start/stop the match countdown |
+| Legend selector | Sends the selected legend portrait to the score overlay |
+| Battlefield selector | Sends the selected battlefield to the score overlay |
+
+### Decklist tab
+
+Paste a decklist in the text area for Player 1 or Player 2 and click **Send**. The decklist overlay for that player will populate with card images automatically.
+
+**Decklist format:**
+```
+Legend:
+1 Ahri - Nine-Tailed Fox
+
+Champion:
+1 Ahri
+
+MainDeck:
+3 Acceptable Losses
+2 Blade Whirl
+...
+
+Battlefields:
+1 Abandoned Hall
+
+Runes:
+1 Attunement
 ```
 
-Or manually:
+---
+
+## Updating Card Data (New Sets)
+
+When Riftbound releases a new set, update the card database:
+
 ```bash
-git add .
-git commit -m "your message"
+node fetch-cards.js
+git add public/cards.json
+git commit -m "Update cards — new set"
 git push
 ```
 
-Render detects the push and redeploys automatically. Your Render URL never changes.
+Render redeploys automatically. Done.
 
 ---
 
@@ -131,10 +182,28 @@ npm install
 node server.js
 ```
 
-Then open `http://localhost:3000/controller.html`
+Open `http://localhost:3000/controller.html` — everything works the same as production.
 
 ---
 
-## File Size Notes
+## Project Structure
 
-GitHub handles files up to 100MB each. For large collections of card images, keep individual files as compressed WebP (which you're already doing). If your total repo ever exceeds ~2GB, look into Git LFS — but for typical card art this won't be an issue.
+```
+poro-overlay/
+├── server.js                  # Express + Socket.IO relay server
+├── fetch-cards.js             # Run locally to update card data
+├── package.json
+└── public/
+    ├── cards.json             # Static card database (committed to repo)
+    ├── cardDatabase.js        # Shared card lookup module
+    ├── controller.html        # The control panel
+    ├── score-overlay.html     # Score + legend + battlefield overlay
+    ├── player1-decklist.html  # P1 full decklist overlay
+    ├── player2-decklist.html  # P2 full decklist overlay
+    ├── starting-soon.html     # Stream starting soon screen
+    ├── decklist-overlay.html  # Combined decklist overlay (alternative)
+    ├── images/
+    │   └── placeholder.png
+    └── fonts/
+        └── Cinzel-VariableFont_wght.ttf
+```
