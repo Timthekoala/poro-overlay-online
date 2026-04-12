@@ -63,6 +63,7 @@
             animation: fadeInScale 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
         }
         .card-img { width: 100%; border-radius: 8px; border: 1px solid #444; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+        .card-img.battlefield { transform: rotate(-90deg); transform-origin: center center; }
         .card-count { 
             position: absolute; bottom: -8px; right: -8px;
             background: #111; border: 2px solid #f07e01; border-radius: 50%;
@@ -121,9 +122,10 @@
             return RiftCodex.getCardImageUrl(name) || 'images/placeholder.png';
         }
 
-        function getCardImageHtml(name, count, isSidebar = false, label = "", delay = 0) {
+        function getCardImageHtml(name, count, isSidebar = false, label = "", delay = 0, isBattlefield = false) {
             const imgUrl = getImageUrl(name);
             const animStyle = `style="animation-delay: ${delay}s"`;
+            const imgClass = isBattlefield ? 'card-img battlefield' : 'card-img';
             if (isSidebar) {
                 return `<div class="sidebar-item" ${animStyle}>
                     <div class="sidebar-label">${label}</div>
@@ -131,7 +133,7 @@
                 </div>`;
             } else {
                 return `<div class="card-container" ${animStyle}>
-                    <img class="card-img" src="${imgUrl}" onerror="this.src='images/placeholder.png'">
+                    <img class="${imgClass}" src="${imgUrl}" onerror="this.src='images/placeholder.png'">
                     <div class="card-count">${count}</div>
                 </div>`;
             }
@@ -162,7 +164,7 @@
                     } else if (header === 'MainDeck' || header === 'Runes' || header === 'Main Deck') {
                         grid.innerHTML += getCardImageHtml(name, count, false, "", n * 0.05);
                     } else if (header === 'Battlefields') {
-                        grid.innerHTML += getCardImageHtml(name, count, false, "", n * 0.05);
+                        grid.innerHTML += getCardImageHtml(name, count, false, "", n * 0.05, true);
                     }
                 });
             });
