@@ -1,6 +1,6 @@
 (function () {
     const PROXY_API   = window.location.origin + '/api';
-    const DIRECT_API  = 'https://corsproxy.io/?https://api.riftcodex.com';
+    const DIRECT_BASE = 'https://api.riftcodex.com';
     const CACHE_KEY = 'rb_riftcodex_v3';
     const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -75,7 +75,8 @@
                         useDirectApi = true;
                         console.warn('Server proxy unavailable, switching to direct API');
                     }
-                    const r = await fetch(`${DIRECT_API}/cards?page=${page}`);
+                    const directUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(DIRECT_BASE + '/cards?page=' + page)}`;
+                    const r = await fetch(directUrl);
                     if (!r.ok) throw new Error(`Direct API ${r.status}`);
                     return r.json();
                 }
